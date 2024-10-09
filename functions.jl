@@ -1,0 +1,1 @@
+## function for plotting the prices
