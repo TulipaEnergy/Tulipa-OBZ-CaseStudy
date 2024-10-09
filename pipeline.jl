@@ -9,6 +9,11 @@ using StatsPlots
 using JuMP
 using CSV
 
+# Read raw input files
+df = CSV.read(joinpath(input_dir, "profiles-rep-periods.csv"), DataFrame, header = 2)
+df_stacked = unstack(df,:profile_name,:value)
+CSV.write("raw-input-files/profiles-eu.csv", df_stacked)
+
 # set up the solver
 optimizer = HiGHS.Optimizer
 parameters = Dict("output_flag" => true, "mip_rel_gap" => 0.0, "mip_feasibility_tolerance" => 1e-5)
@@ -17,12 +22,10 @@ parameters = Dict("output_flag" => true, "mip_rel_gap" => 0.0, "mip_feasibility_
 # optimizer = Gurobi.Optimizer
 # parameters = Dict("OutputFlag" => 1, "MIPGap" => 0.0, "FeasibilityTol" => 1e-5)
  
-# Read data 
-input_dir = "EU"
+# Read Tulipa input files 
+input_dir = "tulipa-files-EU-case-study"
 connection = DBInterface.connect(DuckDB.DB)
 read_csv_folder(connection, input_dir; schemas = TulipaEnergyModel.schema_per_table_name)
-
-# clustering...
 
 # solve the problem
 energy_problem = run_scenario(
