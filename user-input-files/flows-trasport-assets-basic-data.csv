@@ -1,3 +1,4 @@
+string,string,string,MW
 from_asset,to_asset,carrier,capacity
 NL_E_Balance,BE_E_Balance,electricity,1000
 DE_E_Balance,NL_E_Balance,electricity,1000

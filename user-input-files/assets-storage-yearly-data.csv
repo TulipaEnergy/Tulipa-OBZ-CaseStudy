@@ -1,3 +1,4 @@
+string,int,#units,#units,MWh,MWh/year
 name,year,initial_units,initial_storage_units,initial_storage_level,storage_inflows
 NL_Battery,2030,1,1,,5800
 BE_Battery,2030,1,1,,767

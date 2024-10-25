@@ -1,3 +1,4 @@
+string,string,string
 from_asset,to_asset,carrier
 NL_E_Balance,NL_E_Demand,electricity
 NL_E_ENS,NL_E_Demand,electricity

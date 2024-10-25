@@ -1,3 +1,4 @@
+string,int,MW
 name,year,peak_demand
 NL_E_Demand,2030,21291.22
 BE_E_Demand,2030,14380.34

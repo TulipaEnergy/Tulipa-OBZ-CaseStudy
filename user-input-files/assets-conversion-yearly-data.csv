@@ -1,1 +1,2 @@
+string,int,#units,{true;false},{missing;basic},kEUR/h/unit_on,{true;false},[p.u.],{true;false},[p.u.],[p.u.]
 name,year,initial_units,unit_commitment,unit_commitment_method,units_on_cost,unit_commitment_integer,min_operating_point,ramping,max_ramp_up,max_ramp_down
