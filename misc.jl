@@ -49,3 +49,21 @@ CSV.write("user-input-files/assets-producer-yearly-data.csv", df_producer_year)
 CSV.write("user-input-files/assets-conversion-yearly-data.csv", df_conversion_year)
 CSV.write("user-input-files/assets-storage-yearly-data.csv", df_storage_year)
 
+# create flow files (non-year dependent)
+df = CSV.read(joinpath(input_dir, "graph-flows-data.csv"), DataFrame, header=2)
+
+df_assets_connections = df[df.is_transport.==false, [:from_asset, :to_asset, :carrier]]
+df_trasport_assets = df[df.is_transport.==true, [:from_asset, :to_asset, :carrier, :capacity]]
+
+CSV.write("user-input-files/flows-assets-connections-basic-data.csv", df_assets_connections)
+CSV.write("user-input-files/flows-trasport-assets-basic-data.csv", df_trasport_assets)
+
+# create flows files (year dependent)
+df_year = CSV.read(joinpath(input_dir, "flows-data.csv"), DataFrame, header=2)
+leftjoin!(df_year, df[:, [:from_asset, :to_asset, :is_transport]], on=[:from_asset, :to_asset])
+
+df_assets_connections_year = df_year[df_year.is_transport.==false, [:from_asset, :to_asset, :year, :variable_cost, :efficiency]]
+df_transport_assets_year = df_year[df_year.is_transport.==true, [:from_asset, :to_asset, :year, :initial_export_units, :initial_import_units]]
+
+CSV.write("user-input-files/flows-assets-connections-yearly-data.csv", df_assets_connections_year)
+CSV.write("user-input-files/flows-trasport-assets-yearly-data.csv", df_transport_assets_year)
