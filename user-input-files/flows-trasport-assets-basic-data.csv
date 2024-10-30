@@ -1,3 +1,4 @@
+string,string,string,{true;false},MW
 from_asset,to_asset,carrier,is_transport,capacity
 NL_E_Balance,BE_E_Balance,electricity,true,1000
 DE_E_Balance,NL_E_Balance,electricity,true,1000
