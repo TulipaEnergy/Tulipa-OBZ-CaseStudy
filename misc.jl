@@ -11,19 +11,19 @@ CSV.write("user-input-files/profiles-eu.csv", df_stacked)
 
 # create assets files (non-year dependent)
 df = CSV.read(joinpath(input_dir, "graph-assets-data.csv"), DataFrame, header=2)
-df_hub = df[df.type.=="hub", [:name]]
+df_hub = df[df.type.=="hub", [:name, :type]]
 df_hub.lat .= 0
 df_hub.lon .= 0
-df_consumer = df[df.type.=="consumer", [:name]]
+df_consumer = df[df.type.=="consumer", [:name, :type]]
 df_consumer.lat .= 0
 df_consumer.lon .= 0
-df_producer = df[df.type.=="producer", [:name, :capacity]]
+df_producer = df[df.type.=="producer", [:name, :type, :capacity]]
 df_producer.lat .= 0
 df_producer.lon .= 0
-df_conversion = df[df.type.=="conversion", [:name, :capacity]]
+df_conversion = df[df.type.=="conversion", [:name, :type, :capacity]]
 df_conversion.lat .= 0
 df_conversion.lon .= 0
-df_storage = df[df.type.=="storage", [:name, :capacity, :capacity_storage_energy]]
+df_storage = df[df.type.=="storage", [:name, :type, :capacity, :capacity_storage_energy]]
 df_storage.lat .= 0
 df_storage.lon .= 0
 
@@ -53,7 +53,7 @@ CSV.write("user-input-files/assets-storage-yearly-data.csv", df_storage_year)
 df = CSV.read(joinpath(input_dir, "graph-flows-data.csv"), DataFrame, header=2)
 
 df_assets_connections = df[df.is_transport.==false, [:from_asset, :to_asset, :carrier]]
-df_trasport_assets = df[df.is_transport.==true, [:from_asset, :to_asset, :carrier, :capacity]]
+df_trasport_assets = df[df.is_transport.==true, [:from_asset, :to_asset, :carrier, :is_transport, :capacity]]
 
 CSV.write("user-input-files/flows-assets-connections-basic-data.csv", df_assets_connections)
 CSV.write("user-input-files/flows-trasport-assets-basic-data.csv", df_trasport_assets)
