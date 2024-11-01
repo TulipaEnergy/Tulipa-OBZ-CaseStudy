@@ -1,2 +1,2 @@
-string,string,MW,degrees,degrees
-name,type,capacity,lat,lon
+string,string,MW,string,string,degrees,degrees
+name,type,capacity,country,technology,lat,lon
