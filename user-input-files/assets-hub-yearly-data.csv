@@ -1,5 +1,5 @@
 string,int,int
-name,year,resolution
+name,year,partition
 NL_E_Balance,2030,1
 BE_E_Balance,2030,1
 DE_E_Balance,2030,1

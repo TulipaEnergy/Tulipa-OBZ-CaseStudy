@@ -1,5 +1,5 @@
 string,int,int,MW
-name,year,resolution,peak_demand
+name,year,partition,peak_demand
 NL_E_Demand,2030,1,33775.8785
 BE_E_Demand,2030,1,23582.92406
 DE_E_Demand,2030,1,119083.5828
