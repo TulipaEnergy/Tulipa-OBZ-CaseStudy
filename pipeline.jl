@@ -100,6 +100,12 @@ energy_problem = run_scenario(
     log_file="log_file.log",
 )
 
+if energy_problem.termination_status == INFEASIBLE
+    compute_conflict!(energy_problem.model)
+    iis_model, reference_map = copy_conflict(energy_problem.model)
+    print(iis_model)
+end
+
 ## if no "outputs" folder exists, create it
 if !isdir("outputs")
     mkdir("outputs")
