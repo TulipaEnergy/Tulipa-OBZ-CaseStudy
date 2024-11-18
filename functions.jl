@@ -86,6 +86,12 @@ function process_user_files(
                 _df = rename!(_df, key => value)
             end
         end
+        for column in columns
+            if String(column) ∉ names(_df)
+                _df[!, column] .= missing
+            end
+        end
+        _df = select(_df, columns)
         df = vcat(df, _df; cols=:union)
     end
 
