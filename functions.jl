@@ -58,7 +58,8 @@ function process_user_files(
     schema::Union{NTuple,OrderedDict},
     starting_name_in_files::String,
     ending_name_in_files::String,
-    default_values::Dict
+    default_values::Dict;
+    map_to_rename_user_columns::Dict=Dict(),
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
@@ -71,6 +72,11 @@ function process_user_files(
 
     for file in files
         _df = CSV.read(joinpath(input_folder, file), DataFrame, header=2)
+        for (key, value) in map_to_rename_user_columns
+            if key in names(_df)
+                _df = rename!(_df, key => value)
+            end
+        end
         df = vcat(df, _df; cols=:union)
     end
 
@@ -79,6 +85,8 @@ function process_user_files(
             df[!, key] = coalesce.(df[!, key], value)
         end
     end
+
+    df = select(df, columns)
 
     open(output_file, "w") do io
         println(io, repeat(",", size(df, 2)))
@@ -130,6 +138,10 @@ function get_default_values()
         "initial_export_units" => 0.0,
         "initial_import_units" => 0.0,
         "efficiency" => 1.0,
+        "rep_period" => 1,
+        "specification" => "uniform",
+        "partition" => 1,
+        "is_milestone" => true,
     )
 end
 

@@ -18,18 +18,18 @@ tulipa_files_dir = "tulipa-energy-model-files"
 default_values = get_default_values()
 
 ## transform profiles file
-user_profiles_file = "profiles-assets.csv"
-tulipa_profiles_file = "profiles-rep-periods.csv"
+user_file = "profiles.csv"
+tulipa_file = "profiles-rep-periods.csv"
 transform_profiles_assets_file(
-    joinpath(user_input_dir, user_profiles_file),
-    joinpath(tulipa_files_dir, tulipa_profiles_file),
+    joinpath(user_input_dir, user_file),
+    joinpath(tulipa_files_dir, tulipa_file),
 )
 
 ## write graph assets data file
-tulipa_graph_assets_data_file = "graph-assets-data.csv"
+tulipa_file = "graph-assets-data.csv"
 process_user_files(
     user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_graph_assets_data_file),
+    joinpath(tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.graph.assets,
     "assets",
     "basic-data.csv",
@@ -37,21 +37,44 @@ process_user_files(
 )
 
 ## write assets data file
-tulipa_assets_data_file = "assets-data.csv"
+tulipa_file = "assets-data.csv"
 process_user_files(
     user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_assets_data_file),
+    joinpath(tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.assets.data,
     "assets",
     "yearly-data.csv",
     default_values,
 )
 
-## write graph flows data file
-tulipa_graph_flows_data_file = "graph-flows-data.csv"
+## write assets-profiles data file
+tulipa_file = "assets-profiles.csv"
 process_user_files(
     user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_graph_flows_data_file),
+    joinpath(tulipa_files_dir, tulipa_file),
+    TulipaEnergyModel.schemas.assets.profiles_reference,
+    "assets",
+    "profiles.csv",
+    default_values,
+)
+
+## write assets-rep-periods-partitions data file
+tulipa_file = "assets-rep-periods-partitions.csv"
+process_user_files(
+    user_input_dir,
+    joinpath(tulipa_files_dir, tulipa_file),
+    TulipaEnergyModel.schemas.assets.rep_periods_partition,
+    "assets",
+    "yearly-data.csv",
+    default_values;
+    map_to_rename_user_columns=Dict("name" => "asset"),
+)
+
+## write graph flows data file
+tulipa_file = "graph-flows-data.csv"
+process_user_files(
+    user_input_dir,
+    joinpath(tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.graph.flows,
     "flows",
     "basic-data.csv",
@@ -59,13 +82,24 @@ process_user_files(
 )
 
 ## write flow data file
-tulipa_flows_data_file = "flows-data.csv"
+tulipa_file = "flows-data.csv"
 process_user_files(
     user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_flows_data_file),
+    joinpath(tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.flows.data,
     "flows",
     "yearly-data.csv",
+    default_values,
+)
+
+## write year data file
+tulipa_file = "year-data.csv"
+process_user_files(
+    user_input_dir,
+    joinpath(tulipa_files_dir, tulipa_file),
+    TulipaEnergyModel.schemas.year.data,
+    "year-data",
+    ".csv",
     default_values,
 )
 
