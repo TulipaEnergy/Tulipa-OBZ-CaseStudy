@@ -33,24 +33,34 @@ function transform_profiles_assets_file(input_file::String, output_file::String)
 end
 
 """
-    process_user_files(input_folder::String, output_file::String, schema, starting_name_in_files::String, ending_name_in_files::String, default_values::Dict)
+    process_user_files(
+        input_folder::String,
+        output_file::String,
+        schema::Union{NTuple, OrderedDict},
+        starting_name_in_files::String,
+        ending_name_in_files::String,
+        default_values::Dict;
+        map_to_rename_user_columns::Dict=Dict(),
+    )
 
-Reads multiple CSV files containing user data, concatenates them into a single DataFrame, fills missing values with defaults, and writes the result to a new CSV file.
+Process user files from a specified input folder, apply transformations, and save the result to an output file.
 
 # Arguments
-- `input_folder::String`: The directory containing the input CSV files.
-- `output_file::String`: The path to the output CSV file.
-- `schema::Union{NTuple,OrderedDict}`: The schema defining the columns of the DataFrame.
-- `starting_name_in_files::String`: The starting pattern of the input file names.
-- `ending_name_in_files::String`: The ending pattern of the input file names.
-- `default_values::Dict`: A dictionary of default values for missing data.
+- `input_folder::String`: The folder containing the input files.
+- `output_file::String`: The path to the output file.
+- `schema::Union{NTuple, OrderedDict}`: The schema defining the columns to be included in the output DataFrame.
+- `starting_name_in_files::String`: The starting substring to filter input files.
+- `ending_name_in_files::String`: The ending substring to filter input files.
+- `default_values::Dict`: A dictionary of default values to fill in missing data.
+- `map_to_rename_user_columns::Dict=Dict()`: An optional dictionary to rename columns in the input files.
 
 # Description
-1. Creates an empty DataFrame with columns from the schema.
-2. Reads all files in the input folder that match the specified patterns.
-3. Concatenates the data from these files into a single DataFrame.
-4. Fills missing values with the provided default values.
-5. Writes the resulting DataFrame to the output CSV file.
+1. Reads files from the `input_folder` that match the specified starting and ending substrings.
+2. Creates an empty DataFrame with columns defined by the `schema`.
+3. Reads each matching file into a DataFrame, renames columns as specified by `map_to_rename_user_columns`, and concatenates it to the main DataFrame.
+4. Fills missing values in the DataFrame with the specified `default_values`.
+5. Selects only the columns defined in the `schema`.
+6. Writes the resulting DataFrame to the `output_file`.
 """
 function process_user_files(
     input_folder::String,
@@ -63,7 +73,6 @@ function process_user_files(
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
-    df = select(df, columns)
 
     files = filter(
         file -> startswith(file, starting_name_in_files) && endswith(file, ending_name_in_files),
@@ -89,59 +98,134 @@ function process_user_files(
     df = select(df, columns)
 
     open(output_file, "w") do io
-        println(io, repeat(",", size(df, 2)))
+        println(io, repeat(",", size(df, 2) - 1))
     end
     CSV.write(output_file, df; append=true, writeheader=true)
 end
 
-function get_default_values()
+"""
+    process_flows_rep_period_partition_file(
+        assets_partition_file::String,
+        flows_data_file::String,
+        output_file::String,
+        schema::Union{NTuple, OrderedDict},
+        default_values::Dict
+    )
+
+Processes flow data and partitions it based on asset partition information.
+
+# Arguments
+- `assets_partition_file::String`: Path to the CSV file containing asset partition information.
+- `flows_data_file::String`: Path to the CSV file containing flow data.
+- `output_file::String`: Path to the output CSV file where the processed data will be saved.
+- `schema::Union{NTuple, OrderedDict}`: Schema defining the columns of the output DataFrame.
+- `default_values::Dict`: Dictionary containing default values for columns in the DataFrame.
+
+# Description
+1. Reads the asset partition and flow data from the provided CSV files.
+2. Merges the flow data into a DataFrame.
+3. Fills missing values in the DataFrame with the provided default values.
+4. Assigns partitions to each row based on the asset partition information.
+5. Selects the columns defined in the schema.
+6. Writes the processed DataFrame to the output CSV file.
+"""
+function process_flows_rep_period_partition_file(
+    assets_partition_file::String,
+    flows_data_file::String,
+    output_file::String,
+    schema::Union{NTuple,OrderedDict},
+    default_values::Dict
+)
+    columns = [name for (name, _) in schema]
+    df = DataFrame(Dict(name => Vector{Any}() for name in columns))
+
+    df_assets_partition = CSV.read(assets_partition_file, DataFrame, header=2)
+    df_flows = CSV.read(flows_data_file, DataFrame, header=2)
+
+    df = vcat(df, df_flows; cols=:union)
+
+    for (key, value) in default_values
+        if key in names(df)
+            df[!, key] = coalesce.(df[!, key], value)
+        end
+    end
+
+    for row in eachrow(df)
+        from_partition = df_assets_partition[df_assets_partition.asset.==row.from_asset, :partition]
+        to_partition = df_assets_partition[df_assets_partition.asset.==row.to_asset, :partition]
+        if !isempty(from_partition) && !isempty(to_partition)
+            row.partition = max(from_partition[1], to_partition[1])
+        elseif !isempty(from_partition)
+            row.partition = from_partition[1]
+        elseif !isempty(to_partition)
+            row.partition = to_partition[1]
+        end
+    end
+
+    df = select(df, columns)
+
+    open(output_file, "w") do io
+        println(io, repeat(",", size(df, 2) - 1))
+    end
+    CSV.write(output_file, df; append=true, writeheader=true)
+end
+
+function get_default_values(;
+    default_year::Int=2030,)
     return Dict(
-        "group" => missing,
-        "investment_method" => "none",
-        "capacity" => 0.0,
-        "technical_lifetime" => 1.0,
-        "economic_lifetime" => 1.0,
-        "discount_rate" => 0.0,
-        "capacity_storage_energy" => 0.0,
         "active" => true,
-        "commission_year" => 2030,
-        "investable" => false,
-        "investment_integer" => false,
-        "investment_limit" => missing,
-        "initial_units" => 0,
-        "peak_demand" => 0,
-        "consumer_balance_sense" => missing,
-        "is_seasonal" => false,
-        "storage_inflows" => 0,
-        "initial_storage_units" => 0,
-        "initial_storage_level" => missing,
-        "energy_to_power_ratio" => 0,
-        "storage_method_energy" => false,
-        "investment_cost_storage_energy" => 0.0,
-        "fixed_cost_storage_energy" => 0.0,
-        "investment_limit_storage_energy" => missing,
-        "investment_integer_storage_energy" => false,
-        "use_binary_storage_method" => missing,
-        "max_energy_timeframe_partition" => missing,
-        "min_energy_timeframe_partition" => missing,
-        "unit_commitment" => false,
-        "unit_commitment_method" => missing,
-        "units_on_cost" => 0.0,
-        "unit_commitment_integer" => false,
-        "min_operating_point" => 0.0,
-        "ramping" => false,
-        "max_ramp_up" => missing,
-        "max_ramp_down" => missing,
+        "capacity" => 0.0,
+        "capacity_storage_energy" => 0.0,
         "carrier" => "electricity",
-        "is_transport" => false,
-        "variable_cost" => 0.0,
+        "commission_year" => default_year,
+        "consumer_balance_sense" => missing,
+        "discount_rate" => 0.0,
+        "economic_lifetime" => 1.0,
+        "efficiency" => 1.0,
+        "energy_to_power_ratio" => 0,
+        "fixed_cost" => 0.0,
+        "fixed_cost_storage_energy" => 0.0,
+        "group" => missing,
         "initial_export_units" => 0.0,
         "initial_import_units" => 0.0,
-        "efficiency" => 1.0,
-        "rep_period" => 1,
-        "specification" => "uniform",
-        "partition" => 1,
+        "initial_storage_level" => missing,
+        "initial_storage_units" => 0,
+        "initial_units" => 0,
+        "investment_cost" => 0.0,
+        "investment_cost_storage_energy" => 0.0,
+        "investment_integer" => false,
+        "investment_integer_storage_energy" => false,
+        "investment_limit" => missing,
+        "investment_limit_storage_energy" => missing,
+        "investment_method" => "none",
+        "investable" => false,
         "is_milestone" => true,
+        "is_seasonal" => false,
+        "is_transport" => false,
+        "max_energy_timeframe_partition" => missing,
+        "max_ramp_down" => missing,
+        "max_ramp_up" => missing,
+        "min_energy_timeframe_partition" => missing,
+        "min_operating_point" => 0.0,
+        "num_timesteps" => 8760,
+        "partition" => 1,
+        "peak_demand" => 0,
+        "period" => 1,
+        "rep_period" => 1,
+        "resolution" => 1.0,
+        "ramping" => false,
+        "specification" => "uniform",
+        "storage_inflows" => 0,
+        "storage_method_energy" => false,
+        "technical_lifetime" => 1.0,
+        "unit_commitment" => false,
+        "unit_commitment_integer" => false,
+        "unit_commitment_method" => missing,
+        "units_on_cost" => 0.0,
+        "use_binary_storage_method" => missing,
+        "variable_cost" => 0.0,
+        "weight" => 1.0,
+        "year" => default_year,
     )
 end
 
@@ -293,8 +377,8 @@ function plot_balance_NL()
             row -> occursin(key[1], String(row.from)) && occursin(key[2], String(row.to)),
             energy_problem.dataframes[:flows],
         )
-        @show name
-        @show rows = size(df_flows)[1]
+        # @show name
+        # @show rows = size(df_flows)[1]
         if rows < 8760
             values = []
             n_repeat = 8760 / rows
@@ -306,7 +390,7 @@ function plot_balance_NL()
         else
             values = df_flows[!, :solution]
         end
-        @show size(values)
+        # @show size(values)
         df_interconnection[!, name] = values / 1e3
     end
 
