@@ -235,66 +235,101 @@ function get_default_values(;
     )
 end
 
+# Functions to get the results
+"""
+    get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
+
+Generate a DataFrame containing electricity prices for hubs over time from the given energy problem.
+
+# Arguments
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the necessary data and solution.
+
+# Returns
+- `DataFrame`: A DataFrame with columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`, representing the electricity prices for hubs over time.
+
+# Description
+This function processes the `energy_problem` to extract and compute electricity prices for hubs. It filters the relevant data, calculates the duration of each timestep block, and constructs a new DataFrame with the time and price information for each hub. The resulting DataFrame is grouped by `:asset`, `:year`, and `:rep_period`, and the time steps are expanded accordingly.
+
+"""
+function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
+    df = energy_problem.dataframes[:highest_in_out]
+    unit_ranges = df[!, :timesteps_block]
+    start_values = [range[1] for range in unit_ranges]
+    df[!, :time] = start_values
+
+    df_hubs = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
+    df_hubs[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
+    df_hubs[!, :duration] = df_hubs[!, :timesteps_block] .|> length
+
+    df_prices = DataFrame(Dict(col => Vector{eltype(df_hubs[!, col])}() for col in names(df_hubs)))
+    grouped_df = groupby(df_hubs, [:asset, :year, :rep_period])
+
+    for group in grouped_df
+        time_step = 1
+        for row in eachrow(group)
+            for _ in 1:row[:duration]
+                row.time = time_step
+                time_step += 1
+                push!(df_prices, row)
+            end
+        end
+    end
+
+    select!(df_prices, [:asset, :year, :rep_period, :time, :price])
+    return df_prices
+end
+
+
 # Function for plotting the prices
 
-function plot_electricity_prices_NL()
-    df_highest_in_out = energy_problem.dataframes[:highest_in_out]
-    unit_ranges = df_highest_in_out[!, :timesteps_block]
-    end_values = [range[end] for range in unit_ranges]
-    df_highest_in_out[!, :time] = end_values
+function plot_electricity_prices(prices::DataFrame; assets=[], years=[], rep_periods=[], xticks=[])
 
-    # filter the hub assets
-    df_highest_in_out_hubs = filter(row -> occursin(r"Balance", String(row.asset)), df_highest_in_out)
+    # filtering the assets
+    if isempty(assets)
+        df_prices = prices
+    else
+        df_prices = filter(row -> row.asset in assets, prices)
+    end
 
-    # add dual solution
-    df_highest_in_out_hubs[!, :dual] = energy_problem.solution.duals[:hub_balance] * 1e3
+    # filtering the years
+    if isempty(years)
+        df_prices = df_prices
+    else
+        df_prices = filter(row -> row.year in years, df_prices)
+    end
 
-    df_highest_in_out_hubs[!, :duration] = df_highest_in_out_hubs[!, :timesteps_block] .|> length
+    # filtering the representative periods
+    if isempty(rep_periods)
+        df_prices = df_prices
+    else
+        df_prices = filter(row -> row.rep_period in rep_periods, df_prices)
+    end
 
-    # multiply the dual by the duration
-    df_highest_in_out_hubs[!, :dual_times_duration] =
-        df_highest_in_out_hubs[!, :dual] .* df_highest_in_out_hubs[!, :duration]
+    # group by asset, year, and representative period
+    grouped_df = groupby(df_prices, [:asset, :year, :rep_period])
 
-    # group by asset and sum the dual and duration
-    df_highest_in_out_hubs_grouped = combine(
-        groupby(df_highest_in_out_hubs, [:asset]),
-        :dual_times_duration => sum,
-        :duration => sum,
-    )
+    # for each group, plot the time vs the price in the same plot
+    p = plot()
+    for group in grouped_df
+        sorted_group = sort(group, :price, rev=true)
+        plot!(
+            group[!, :time],
+            sorted_group[!, :price];
+            label=group.asset[1],
+            legend=:topright,
+            xlabel="Hour",
+            ylabel="Price [€/MWh]",
+            title="Electricity Prices",
+            linewidth=2,
+            dpi=600,
+        )
+    end
 
-    df_highest_in_out_hubs_grouped[!, :avg_price] =
-        df_highest_in_out_hubs_grouped[!, :dual_times_duration_sum] ./
-        df_highest_in_out_hubs_grouped[!, :duration_sum]
-    # export the data frame to csv
-    CSV.write("outputs/eu-case-avg-prices.csv", df_highest_in_out_hubs_grouped)
-
-    # filter the hub assets starting with NL in the name
-    df_highest_in_out_hubs_filtered =
-        filter(row -> occursin(r"NL", String(row.asset)), df_highest_in_out_hubs)
-
-    # order the data frame by the dual solution
-    sort!(df_highest_in_out_hubs_filtered, :dual; rev=true)
-
-    p = @df df_highest_in_out_hubs_filtered plot(
-        #:time,
-        :dual,
-        group=(:asset, :rep_period),
-        legend=:none,
-        xlabel="Hour",
-        xticks=0:730:8760,
-        ylabel="[€/MWh]",
-        ylims=(0, 250),
-        title="Prices in NL",
-        linewidth=3,
-        dpi=600,
-        legend_font_pointsize=10,
-        color=:orangered,
-        #legend_title = "Representative period",
-        #size = (800, 600),
-    )
-
-    savefig("outputs/eu-case-prices.png")
-    return @show p
+    # if xticks are provided, set them
+    if !isempty(xticks)
+        xticks!(xticks)
+    end
+    return p
 end
 
 function plot_intra_storage_level_NL_battery()
