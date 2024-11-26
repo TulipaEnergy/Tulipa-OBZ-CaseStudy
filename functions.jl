@@ -23,13 +23,13 @@ Transforms a CSV file containing profile asset data into a long format and write
 function transform_profiles_assets_file(input_file::String, output_file::String)
     df = CSV.read(input_file, DataFrame)
     columns = setdiff(names(df), ["year", "timestep"])
-    new_df = stack(df, columns, variable_name=:profile_name, value_name=:value)
+    new_df = stack(df, columns; variable_name = :profile_name, value_name = :value)
     new_df[!, :rep_period] .= 1
     new_df = select(new_df, [:profile_name, :year, :rep_period, :timestep, :value])
     open(output_file, "w") do io
         println(io, join(["", "", "", "", "p.u."], ","))
     end
-    CSV.write(output_file, new_df; append=true, writeheader=true)
+    CSV.write(output_file, new_df; append = true, writeheader = true)
 end
 
 """
@@ -69,18 +69,19 @@ function process_user_files(
     starting_name_in_files::String,
     ending_name_in_files::String,
     default_values::Dict;
-    map_to_rename_user_columns::Dict=Dict(),
+    map_to_rename_user_columns::Dict = Dict(),
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
 
     files = filter(
-        file -> startswith(file, starting_name_in_files) && endswith(file, ending_name_in_files),
-        readdir(input_folder)
+        file ->
+            startswith(file, starting_name_in_files) && endswith(file, ending_name_in_files),
+        readdir(input_folder),
     )
 
     for file in files
-        _df = CSV.read(joinpath(input_folder, file), DataFrame, header=2)
+        _df = CSV.read(joinpath(input_folder, file), DataFrame; header = 2)
         for (key, value) in map_to_rename_user_columns
             if key in names(_df)
                 _df = rename!(_df, key => value)
@@ -92,7 +93,7 @@ function process_user_files(
             end
         end
         _df = select(_df, columns)
-        df = vcat(df, _df; cols=:union)
+        df = vcat(df, _df; cols = :union)
     end
 
     for (key, value) in default_values
@@ -106,7 +107,7 @@ function process_user_files(
     open(output_file, "w") do io
         println(io, repeat(",", size(df, 2) - 1))
     end
-    CSV.write(output_file, df; append=true, writeheader=true)
+    CSV.write(output_file, df; append = true, writeheader = true)
 end
 
 """
@@ -140,15 +141,15 @@ function process_flows_rep_period_partition_file(
     flows_data_file::String,
     output_file::String,
     schema::Union{NTuple,OrderedDict},
-    default_values::Dict
+    default_values::Dict,
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
 
-    df_assets_partition = CSV.read(assets_partition_file, DataFrame, header=2)
-    df_flows = CSV.read(flows_data_file, DataFrame, header=2)
+    df_assets_partition = CSV.read(assets_partition_file, DataFrame; header = 2)
+    df_flows = CSV.read(flows_data_file, DataFrame; header = 2)
 
-    df = vcat(df, df_flows; cols=:union)
+    df = vcat(df, df_flows; cols = :union)
 
     for (key, value) in default_values
         if key in names(df)
@@ -173,11 +174,10 @@ function process_flows_rep_period_partition_file(
     open(output_file, "w") do io
         println(io, repeat(",", size(df, 2) - 1))
     end
-    CSV.write(output_file, df; append=true, writeheader=true)
+    CSV.write(output_file, df; append = true, writeheader = true)
 end
 
-function get_default_values(;
-    default_year::Int=2030,)
+function get_default_values(; default_year::Int = 2030)
     return Dict(
         "active" => true,
         "capacity" => 0.0,
@@ -279,10 +279,15 @@ function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
     return df_prices
 end
 
-
 # Function for plotting the prices
 
-function plot_electricity_prices(prices::DataFrame; assets=[], years=[], rep_periods=[], xticks=[])
+function plot_electricity_prices(
+    prices::DataFrame;
+    assets = [],
+    years = [],
+    rep_periods = [],
+    xticks = [],
+)
 
     # filtering the assets
     if isempty(assets)
@@ -311,17 +316,17 @@ function plot_electricity_prices(prices::DataFrame; assets=[], years=[], rep_per
     # for each group, plot the time vs the price in the same plot
     p = plot()
     for group in grouped_df
-        sorted_group = sort(group, :price, rev=true)
+        sorted_group = sort(group, :price; rev = true)
         plot!(
             group[!, :time],
             sorted_group[!, :price];
-            label=group.asset[1],
-            legend=:topright,
-            xlabel="Hour",
-            ylabel="Price [€/MWh]",
-            title="Electricity Prices",
-            linewidth=2,
-            dpi=600,
+            label = group.asset[1],
+            legend = :topright,
+            xlabel = "Hour",
+            ylabel = "Price [€/MWh]",
+            title = "Electricity Prices",
+            linewidth = 2,
+            dpi = 600,
         )
     end
 
@@ -352,15 +357,15 @@ function plot_intra_storage_level_NL_battery()
     p = @df df_storage_level_filtered[range_to_plot, :] plot(
         #:time,
         :solution,
-        group=(:asset, :rep_period),
-        legend=:none,
-        xlabel="Hour",
-        xticks=0:24:8760,
-        ylabel="SoC [p.u.]",
+        group = (:asset, :rep_period),
+        legend = :none,
+        xlabel = "Hour",
+        xticks = 0:24:8760,
+        ylabel = "SoC [p.u.]",
         #title = "SoC Batteries in NL",
-        linewidth=3,
-        dpi=600,
-        legend_font_pointsize=10,
+        linewidth = 3,
+        dpi = 600,
+        legend_font_pointsize = 10,
         #legend_title = "Representative period",
         #size = (800, 600),
     )
@@ -419,7 +424,7 @@ function plot_balance_NL()
             energy_problem.dataframes[:flows],
         )
         # @show name
-        # @show rows = size(df_flows)[1]
+        rows = size(df_flows)[1]
         if rows < 8760
             values = []
             n_repeat = 8760 / rows
@@ -443,7 +448,8 @@ function plot_balance_NL()
 
     df_demand = filter(
         row ->
-            occursin("NL_E_Balance", String(row.from)) && occursin("NL_E_Demand", String(row.to)),
+            occursin("NL_E_Balance", String(row.from)) &&
+                occursin("NL_E_Demand", String(row.to)),
         energy_problem.dataframes[:flows],
     )
 
@@ -481,36 +487,36 @@ function plot_balance_NL()
 
     groupedbar(
         Matrix(df_production[range_to_plot, :]);
-        bar_position=:stack,
-        labels=reshape(labels_names, 1, length(labels_names)),
-        color=reshape(tech_colors_name, 1, length(tech_colors_name)),
-        yticks=-10:5:25,
-        ylims=(-10, 25),
+        bar_position = :stack,
+        labels = reshape(labels_names, 1, length(labels_names)),
+        color = reshape(tech_colors_name, 1, length(tech_colors_name)),
+        yticks = -10:5:25,
+        ylims = (-10, 25),
         #legend = :outerbottom,
         #legend = :topright,
         #legend = :outertopright,
-        legend=:bottom,
-        legend_column=5,
-        legend_font_pointsize=8,
-        size=(1200, 600),
-        left_margin=[5mm 0mm],
-        bottom_margin=[5mm 0mm],
+        legend = :bottom,
+        legend_column = 5,
+        legend_font_pointsize = 8,
+        size = (1200, 600),
+        left_margin = [5mm 0mm],
+        bottom_margin = [5mm 0mm],
         #top_margin = [5mm 0mm],
-        xlabel="Hour",
-        xticks=0:12:168,
-        xlims=(0, 168),
-        ylabel="[GWh]",
+        xlabel = "Hour",
+        xticks = 0:12:168,
+        xlims = (0, 168),
+        ylabel = "[GWh]",
         #title = "Production in NL",
-        dpi=600,
+        dpi = 600,
     )
 
     # add a line for the demand
     p = plot!(
         df_demand[range_to_plot, :solution] / 1e3;
-        label="Demand",
-        color=:black,
-        linewidth=3,
-        linestyle=:dash,
+        label = "Demand",
+        color = :black,
+        linewidth = 3,
+        linestyle = :dash,
     )
 
     savefig("outputs/eu-case-balance.png")
