@@ -19,6 +19,10 @@ Transforms a CSV file containing profile asset data into a long format and write
 5. Reorders the columns to `profile_name`, `year`, `rep_period`, `timestep`, and `value`.
 6. Writes a header row with units to the output file.
 7. Writes the transformed DataFrame to the output CSV file, appending to the header.
+
+# Returns
+- The resulting DataFrame after processing the user files.
+
 """
 function transform_profiles_assets_file(input_file::String, output_file::String)
     df = CSV.read(input_file, DataFrame)
@@ -30,6 +34,7 @@ function transform_profiles_assets_file(input_file::String, output_file::String)
         println(io, join(["", "", "", "", "p.u."], ","))
     end
     CSV.write(output_file, new_df; append = true, writeheader = true)
+    return new_df
 end
 
 """
@@ -61,6 +66,9 @@ Process user files from a specified input folder, apply transformations, and sav
 4. Fills missing values in the DataFrame with the specified `default_values`.
 5. Selects only the columns defined in the `schema`.
 6. Writes the resulting DataFrame to the `output_file`.
+
+# Returns
+- The resulting DataFrame after processing the user files.
 """
 function process_user_files(
     input_folder::String,
@@ -108,6 +116,7 @@ function process_user_files(
         println(io, repeat(",", size(df, 2) - 1))
     end
     CSV.write(output_file, df; append = true, writeheader = true)
+    return df
 end
 
 """
@@ -135,6 +144,10 @@ Processes flow data and partitions it based on asset partition information.
 4. Assigns partitions to each row based on the asset partition information.
 5. Selects the columns defined in the schema.
 6. Writes the processed DataFrame to the output CSV file.
+
+# Returns
+- The resulting DataFrame after processing the user files.
+
 """
 function process_flows_rep_period_partition_file(
     assets_partition_file::String,
@@ -175,6 +188,7 @@ function process_flows_rep_period_partition_file(
         println(io, repeat(",", size(df, 2) - 1))
     end
     CSV.write(output_file, df; append = true, writeheader = true)
+    return df
 end
 
 function get_default_values(; default_year::Int = 2030)
