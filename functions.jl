@@ -422,17 +422,38 @@ function plot_electricity_prices(
     return p
 end
 
-function plot_intra_storage_level_NL_battery()
-    df_storage_level = energy_problem.dataframes[:lowest_storage_level_intra_rp]
-    unit_ranges = df_storage_level[!, :timesteps_block]
-    end_values = [range[end] for range in unit_ranges]
-    df_storage_level[!, :time] = end_values
+"""
+    plot_intra_storage_levels(
+        intra_storage_level::DataFrame;
+        assets = [],
+        years = [],
+        rep_periods = [],
+        range_to_plot = [],
+        xticks = [],
+    ) -> Plot
 
-    # filtering the assets starting with NL in the name
-    df_storage_level_filtered = filter(row -> occursin(r"NL", String(row.asset)), df_storage_level)
+Plot the intra storage levels for the given assets, years, and representative periods.
 
-    # get max value of the solution
-    max_value = maximum(df_storage_level_filtered.solution)
+# Arguments
+- `intra_storage_level::DataFrame`: The DataFrame containing the intra storage level data.
+- `assets`: An array of assets to filter the data by. If empty, all assets are included.
+- `years`: An array of years to filter the data by. If empty, all years are included.
+- `rep_periods`: An array of representative periods to filter the data by. If empty, all representative periods are included.
+- `range_to_plot`: An array specifying the range of x-axis to plot. If empty, the full range is plotted.
+- `xticks`: An array specifying the x-axis ticks. If empty, default ticks are used.
+
+# Returns
+- `Plot`: A plot object showing the storage levels over time for the specified filters.
+
+"""
+function plot_intra_storage_levels(
+    intra_storage_level::DataFrame;
+    assets = [],
+    years = [],
+    rep_periods = [],
+    range_to_plot = [],
+    xticks = [],
+)
 
     # normalize the solution
     df_storage_level_filtered.solution = df_storage_level_filtered.solution ./ max_value
