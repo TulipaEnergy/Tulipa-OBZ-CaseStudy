@@ -378,27 +378,27 @@ function plot_electricity_prices(
 
     # filtering the assets
     if isempty(assets)
-        df_prices = prices
+        df = prices
     else
-        df_prices = filter(row -> row.asset in assets, prices)
+        df = filter(row -> row.asset in assets, prices)
     end
 
     # filtering the years
     if isempty(years)
-        df_prices = df_prices
+        df = df
     else
-        df_prices = filter(row -> row.year in years, df_prices)
+        df = filter(row -> row.year in years, df)
     end
 
     # filtering the representative periods
     if isempty(rep_periods)
-        df_prices = df_prices
+        df = df
     else
-        df_prices = filter(row -> row.rep_period in rep_periods, df_prices)
+        df = filter(row -> row.rep_period in rep_periods, df)
     end
 
     # group by asset, year, and representative period
-    grouped_df = groupby(df_prices, [:asset, :year, :rep_period])
+    grouped_df = groupby(df, [:asset, :year, :rep_period])
 
     # for each group, plot the time vs the price in the same plot
     p = plot()
@@ -408,10 +408,8 @@ function plot_electricity_prices(
             group[!, :time],
             sorted_group[!, :price];
             label = group.asset[1],
-            legend = :topright,
             xlabel = "Hour",
             ylabel = "Price [€/MWh]",
-            title = "Electricity Prices",
             linewidth = 2,
             dpi = 600,
         )
