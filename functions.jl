@@ -254,6 +254,7 @@ function get_default_values(; default_year::Int = 2030)
 end
 
 # Functions to get the results
+
 """
     get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
 
@@ -295,6 +296,52 @@ function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
 
     select!(df_prices, [:asset, :year, :rep_period, :time, :price])
     return df_prices
+end
+
+"""
+    get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
+
+Generate a DataFrame containing the intra-storage levels for a given energy problem.
+
+# Arguments
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
+
+# Returns
+- A `DataFrame` with the intra-storage levels for the specified energy problem.
+"""
+function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
+    df = energy_problem.dataframes[:lowest_storage_level_intra_rp]
+    unit_ranges = df[!, :timesteps_block]
+    start_values = [range[1] for range in unit_ranges]
+    df[!, :time] = start_values
+    df[!, :duration] = df[!, :timesteps_block] .|> length
+
+    df[!, :SoC] = [
+        row.solution / (
+            if energy_problem.graph[row.asset].capacity_storage_energy == 0
+                1
+            else
+                energy_problem.graph[row.asset].capacity_storage_energy
+            end
+        ) for row in eachrow(df)
+    ]
+
+    df_intra = DataFrame(Dict(col => Vector{eltype(df[!, col])}() for col in names(df)))
+    grouped_df = groupby(df, [:asset, :year, :rep_period])
+
+    for group in grouped_df
+        time_step = 1
+        for row in eachrow(group)
+            for _ in 1:row[:duration]
+                row.time = time_step
+                time_step += 1
+                push!(df_intra, row)
+            end
+        end
+    end
+
+    select!(df_intra, [:asset, :year, :rep_period, :time, :SoC])
+    return df_intra
 end
 
 # Function for plotting the prices
