@@ -57,10 +57,14 @@ end
 
 # Save solution
 prices = get_hubs_electricity_prices_dataframe(energy_problem)
+intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
 
 # Save the solutions to CSV files
 prices_file_name = joinpath(output_dir, "eu-case-prices.csv")
 CSV.write(prices_file_name, unstack(prices, :asset, :price))
+
+intra_storage_levels_file_name = joinpath(output_dir, "eu-case-intra-storage-levels.csv")
+CSV.write(intra_storage_levels_file_name, unstack(intra_storage_levels, :asset, :SoC))
 
 save_solution_to_file(output_dir, energy_problem)
 
@@ -68,9 +72,28 @@ save_solution_to_file(output_dir, energy_problem)
 prices_plot =
     plot_electricity_prices(prices; assets = ["NL_E_Balance", "UK_E_Balance"], xticks = 0:730:8760)
 
-plot_intra_storage_level_NL_battery()
+batteries_storage_levels_plot = plot_intra_storage_levels(
+    intra_storage_levels;
+    assets = ["NL_Battery", "UK_Battery"],
+    range_to_plot = (8760 / 2, 8760 / 2 + 168),
+    xticks = 0:12:8760,
+)
+
+hydro_storage_levels_plot = plot_intra_storage_levels(
+    intra_storage_levels;
+    assets = ["ES_Hydro_Reservoir", "NO_Pump_Hydro_Open", "FR_Hydro_Reservoir"],
+    xticks = 0:730:8760,
+)
+
 plot_balance_NL()
 
 # Save the plots
 prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
 savefig(prices_plot, prices_plot_name)
+
+batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
+savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
+
+hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
+savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
+
