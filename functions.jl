@@ -455,30 +455,54 @@ function plot_intra_storage_levels(
     xticks = [],
 )
 
-    # normalize the solution
-    df_storage_level_filtered.solution = df_storage_level_filtered.solution ./ max_value
+    # filtering the assets
+    if isempty(assets)
+        df = intra_storage_level
+    else
+        df = filter(row -> row.asset in assets, intra_storage_level)
+    end
 
-    range_to_plot = 4368:4536 #1:168
+    # filtering the years
+    if isempty(years)
+        df = df
+    else
+        df = filter(row -> row.year in years, df)
+    end
 
-    p = @df df_storage_level_filtered[range_to_plot, :] plot(
-        #:time,
-        :solution,
-        group = (:asset, :rep_period),
-        legend = :none,
+    # filtering the representative periods
+    if isempty(rep_periods)
+        df = df
+    else
+        df = filter(row -> row.rep_period in rep_periods, df)
+    end
+
+    # group by asset, year, and representative period
+    grouped_df = groupby(df, [:asset, :year, :rep_period])
+
+    # for each group, plot the time vs the price in the same plot
+    p = plot()
+    for group in grouped_df
+        plot!(
+            group[!, :time],
+            group[!, :SoC];
+            label = group.asset[1],
         xlabel = "Hour",
-        xticks = 0:24:8760,
-        ylabel = "SoC [p.u.]",
-        #title = "SoC Batteries in NL",
+            ylabel = "Storage level [p.u.]",
         linewidth = 3,
         dpi = 600,
-        legend_font_pointsize = 10,
-        #legend_title = "Representative period",
-        #size = (800, 600),
-    )
+        )
+    end
 
-    savefig("outputs/eu-case-battery-nl.png")
+    # if xticks are provided, set them
+    if !isempty(xticks)
+        xticks!(xticks)
+    end
 
-    return @show p
+    # if range_to_plot is provided, set it
+    if !isempty(range_to_plot)
+        xlims!(range_to_plot)
+    end
+    return p
 end
 
 function plot_balance_NL()
