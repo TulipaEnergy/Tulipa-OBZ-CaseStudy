@@ -346,6 +346,28 @@ end
 
 # Function for plotting the prices
 
+"""
+    plot_electricity_prices(
+    prices::DataFrame;
+    assets = [],
+    years = [],
+    rep_periods = [],
+    xticks = [],
+)
+
+Plots electricity prices over time for specified assets, years, and representative periods.
+
+# Arguments
+- `prices::DataFrame`: A DataFrame containing the electricity prices data. It should have columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`.
+- `assets`: An optional array of assets to filter the data. If empty, all assets are included.
+- `years`: An optional array of years to filter the data. If empty, all years are included.
+- `rep_periods`: An optional array of representative periods to filter the data. If empty, all representative periods are included.
+- `xticks`: An optional array of x-ticks to set on the plot.
+
+# Returns
+- A plot object with electricity prices over time for the specified filters.
+
+"""
 function plot_electricity_prices(
     prices::DataFrame;
     assets = [],
