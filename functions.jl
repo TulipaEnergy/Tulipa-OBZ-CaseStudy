@@ -486,10 +486,10 @@ function plot_intra_storage_levels(
             group[!, :time],
             group[!, :SoC];
             label = group.asset[1],
-        xlabel = "Hour",
+            xlabel = "Hour",
             ylabel = "Storage level [p.u.]",
-        linewidth = 3,
-        dpi = 600,
+            linewidth = 3,
+            dpi = 600,
         )
     end
 
