@@ -246,6 +246,10 @@ function get_default_values(; default_year::Int = 2030)
         "variable_cost" => 0.0,
         "weight" => 1.0,
         "year" => default_year,
+        "country" => missing,
+        "technology" => missing,
+        "lat" => 0,
+        "lon" => 0,
     )
 end
 
