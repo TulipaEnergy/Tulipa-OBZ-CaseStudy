@@ -191,6 +191,52 @@ function process_flows_rep_period_partition_file(
     return df
 end
 
+"""
+    create_one_file_for_assets_basic_info(file_name::String, user_input_dir::String, output_dir::String, default_values::Dict{String,Any})
+
+Create a single file containing basic information about assets.
+
+# Arguments
+- `file_name::String`: The name of the output file to be created.
+- `user_input_dir::String`: The directory containing user input files.
+- `output_dir::String`: The directory where the output file will be saved.
+- `default_values::Dict{String,Any}`: A dictionary containing default values for missing data.
+
+# Returns
+- `DataFrame`: A DataFrame containing the processed asset information.
+
+# Description
+This function processes user input files located in `user_input_dir`, applies a predefined schema,
+and saves the resulting data to a file named `file_name` in the `output_dir`.
+The schema includes columns for name, type, country, technology, latitude, and longitude.
+Default values for missing data are provided by the `default_values` dictionary.
+
+"""
+function create_one_file_for_assets_basic_info(
+    file_name::String,
+    user_input_dir::String,
+    output_dir::String,
+    default_values::Dict{String,Any},
+)
+    schema = (
+        :name => "VARCHAR",
+        :type => "VARCHAR",
+        :country => "VARCHAR",
+        :technology => "VARCHAR",
+        :lat => "DOUBLE",
+        :lon => "DOUBLE",
+    )
+    df = process_user_files(
+        user_input_dir,
+        joinpath(output_dir, file_name),
+        schema,
+        "assets",
+        "basic-data.csv",
+        default_values,
+    )
+    return df
+end
+
 function get_default_values(; default_year::Int = 2030)
     return Dict(
         "active" => true,
