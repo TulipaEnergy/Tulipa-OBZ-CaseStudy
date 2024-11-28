@@ -97,3 +97,53 @@ savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
+function get_hubs_balance(energy_problem::EnergyProblem, assets::DataFrame)
+    # Get the flows dataframe to filter and create new columns
+    df = energy_problem.dataframes[:flows]
+    df = filter(
+        row ->
+            energy_problem.graph[row.from].type == "hub" ||
+                energy_problem.graph[row.to].type == "hub",
+        df,
+    )
+
+    df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
+    df = select(df, [:from, :to, :year, :rep_period, :time, :solution])
+
+    # Exclude lat and lon columns from df_assets
+    assets = select(assets, Not([:lat, :lon]))
+
+    # Merge df with df_assets
+    df_assets_from = rename(
+        assets,
+        Dict(:type => :type_from, :country => :country_from, :technology => :technology_from),
+    )
+    leftjoin!(df, df_assets_from; on = :from => :name)
+    df_assets_to = rename(
+        assets,
+        Dict(:type => :type_to, :country => :country_to, :technology => :technology_to),
+    )
+    leftjoin!(df, df_assets_to; on = :to => :name)
+
+    return df
+end
+
+assets_country_tecnology_file = "assets-country-tecnology-data.csv"
+df_assets_basic_data = create_one_file_for_assets_basic_info(
+    assets_country_tecnology_file,
+    user_input_dir,
+    output_dir,
+    default_values,
+)
+
+df_hubs_flows = get_hubs_balance(energy_problem, df_assets_basic_data)
+
+# get countries and technologies from df_assets_basic_data
+countries = unique(df_assets_basic_data[!, :country])
+technologies = unique(df_assets_basic_data[!, :technology])
+
+# filter such that country_from = country_to
+df_hubs_flows = filter(row -> row.country_from == row.country_to, df_hubs_flows)
+
+# exclude storage if it is either in type_from or type_to
+df_hubs_flows = filter(row -> row.type_from != "storage" && row.type_to != "storage", df_hubs_flows)
