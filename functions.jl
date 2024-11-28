@@ -256,6 +256,40 @@ end
 # Functions to get the results
 
 """
+    unroll_dataframe(df::DataFrame, cols_to_groupby::Vector{Symbol}) -> DataFrame
+
+Unrolls a DataFrame by expanding rows based on the duration of each timestep block.
+
+# Arguments
+- `df::DataFrame`: The input DataFrame containing the data to be unrolled.
+- `cols_to_groupby::Vector{Symbol}`: A vector of column symbols to group by.
+
+# Returns
+- `DataFrame`: A new DataFrame with rows expanded according to the duration of each timestep block.
+
+"""
+function unroll_dataframe(df::DataFrame, cols_to_groupby::Vector{Symbol})
+    unit_ranges = df[!, :timesteps_block]
+    df[!, :time] = [range[1] for range in unit_ranges]
+    df[!, :duration] = df[!, :timesteps_block] .|> length
+
+    _df = DataFrame(Dict(col => Vector{eltype(df[!, col])}() for col in names(df)))
+    grouped_df = groupby(df, cols_to_groupby)
+
+    for group in grouped_df
+        time_step = 1
+        for row in eachrow(group)
+            for _ in 1:row[:duration]
+                row.time = time_step
+                time_step += 1
+                push!(_df, row)
+            end
+        end
+    end
+    return _df
+end
+
+"""
     get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
 
 Generate a DataFrame containing electricity prices for hubs over time from the given energy problem.
@@ -272,28 +306,10 @@ This function processes the `energy_problem` to extract and compute electricity 
 """
 function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
     df = energy_problem.dataframes[:highest_in_out]
-    unit_ranges = df[!, :timesteps_block]
-    start_values = [range[1] for range in unit_ranges]
-    df[!, :time] = start_values
+    df = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
+    df[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
 
-    df_hubs = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
-    df_hubs[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
-    df_hubs[!, :duration] = df_hubs[!, :timesteps_block] .|> length
-
-    df_prices = DataFrame(Dict(col => Vector{eltype(df_hubs[!, col])}() for col in names(df_hubs)))
-    grouped_df = groupby(df_hubs, [:asset, :year, :rep_period])
-
-    for group in grouped_df
-        time_step = 1
-        for row in eachrow(group)
-            for _ in 1:row[:duration]
-                row.time = time_step
-                time_step += 1
-                push!(df_prices, row)
-            end
-        end
-    end
-
+    df_prices = unroll_dataframe(df, [:asset, :year, :rep_period])
     select!(df_prices, [:asset, :year, :rep_period, :time, :price])
     return df_prices
 end
@@ -311,11 +327,6 @@ Generate a DataFrame containing the intra-storage levels for a given energy prob
 """
 function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
     df = energy_problem.dataframes[:lowest_storage_level_intra_rp]
-    unit_ranges = df[!, :timesteps_block]
-    start_values = [range[1] for range in unit_ranges]
-    df[!, :time] = start_values
-    df[!, :duration] = df[!, :timesteps_block] .|> length
-
     df[!, :SoC] = [
         row.solution / (
             if energy_problem.graph[row.asset].capacity_storage_energy == 0
@@ -326,20 +337,7 @@ function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
         ) for row in eachrow(df)
     ]
 
-    df_intra = DataFrame(Dict(col => Vector{eltype(df[!, col])}() for col in names(df)))
-    grouped_df = groupby(df, [:asset, :year, :rep_period])
-
-    for group in grouped_df
-        time_step = 1
-        for row in eachrow(group)
-            for _ in 1:row[:duration]
-                row.time = time_step
-                time_step += 1
-                push!(df_intra, row)
-            end
-        end
-    end
-
+    df_intra = unroll_dataframe(df, [:asset, :year, :rep_period])
     select!(df_intra, [:asset, :year, :rep_period, :time, :SoC])
     return df_intra
 end
