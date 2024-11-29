@@ -388,6 +388,37 @@ function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
     return df_intra
 end
 
+"""
+    get_balance_per_country(energy_problem::EnergyProblem, assets::DataFrame) -> DataFrame
+
+Calculate the energy balance per country based on the given energy problem and assets data.
+
+# Arguments
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
+- `assets::DataFrame`: A DataFrame containing asset information.
+
+# Returns
+- `DataFrame`: A DataFrame containing the energy balance per country with columns:
+    - `country`: The country name.
+    - `technology`: The technology type.
+    - `year`: The year.
+    - `rep_period`: The representative period.
+    - `time`: The time.
+    - `solution`: The calculated balance value.
+
+# Description
+This function performs the following steps:
+1. Filters the flows DataFrame to include only rows where either the `from` or `to` node is a hub.
+2. Unrolls the DataFrame to create new columns and selects relevant columns.
+3. Excludes latitude and longitude columns from the assets DataFrame.
+4. Merges the flows DataFrame with the assets DataFrame to include asset information for both `from` and `to` nodes.
+5. Calculates the incoming asset flows to the hub that are not storage.
+6. Calculates storage discharge and charge.
+7. Calculates exports to and imports from other countries.
+8. Calculates demand for each country.
+9. Concatenates all the calculated DataFrames to form the final balance DataFrame.
+
+"""
 function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFrame)
     # Get the flows dataframe to filter and create new columns
     df = energy_problem.dataframes[:flows]
@@ -771,8 +802,8 @@ function plot_balance_NL()
         bar_position = :stack,
         labels = reshape(labels_names, 1, length(labels_names)),
         color = reshape(tech_colors_name, 1, length(tech_colors_name)),
-        yticks = -10:5:25,
-        ylims = (-10, 25),
+        #yticks = -10:5:25,
+        #ylims = (-10, 25),
         #legend = :outerbottom,
         #legend = :topright,
         #legend = :outertopright,
