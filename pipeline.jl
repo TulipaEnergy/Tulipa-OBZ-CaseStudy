@@ -67,7 +67,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 # Save solution
 prices = get_hubs_electricity_prices_dataframe(energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
-balance = get_balance_per_country(energy_problem, df_assets_basic_data)
+balances = get_balance_per_country(energy_problem, df_assets_basic_data)
 
 # Save the solutions to CSV files
 prices_file_name = joinpath(output_dir, "eu-case-prices.csv")
@@ -77,7 +77,7 @@ intra_storage_levels_file_name = joinpath(output_dir, "eu-case-intra-storage-lev
 CSV.write(intra_storage_levels_file_name, unstack(intra_storage_levels, :asset, :SoC))
 
 balance_file_name = joinpath(output_dir, "eu-case-balance-per-country.csv")
-CSV.write(balance_file_name, unstack(balance, :technology, :solution; fill = 0))
+CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0))
 
 # Plot the results
 prices_plot =
@@ -96,7 +96,14 @@ hydro_storage_levels_plot = plot_intra_storage_levels(
     xticks = 0:730:8760,
 )
 
-plot_balance_NL()
+balance_NL = plot_country_balance(
+    balances;
+    country = "NL",
+    year = 2030,
+    rep_period = 1,
+    range_to_plot = (8760 / 2, 8760 / 2 + 168),
+    xticks = 0:6:8760,
+)
 
 # Save the plots
 prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
@@ -107,3 +114,6 @@ savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
+
+balance_NL_plot_name = joinpath(output_dir, "eu-case-balance-NL.png")
+savefig(balance_NL, balance_NL_plot_name)
