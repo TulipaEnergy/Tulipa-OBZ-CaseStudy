@@ -719,6 +719,7 @@ function plot_country_balance(
         xlabel = "Hour",
         ylabel = "[GWh]",
         dpi = 600,
+        palette = :Paired_11,
     )
 
     # add a line for the demand
