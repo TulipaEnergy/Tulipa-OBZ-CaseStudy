@@ -473,11 +473,11 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
 
     # get storage charge
     _df = filter(row -> row.country_from == row.country_to && row.type_to == "storage", df)
-    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
     df_storage_charge = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_storage_charge, [:country_from => :country, :technology_from => :technology])
+    rename!(df_storage_charge, [:country_to => :country, :technology_to => :technology])
     df_storage_charge.technology = string.(df_storage_charge.technology, "_charge")
     df_storage_charge.solution = -df_storage_charge.solution
 
