@@ -388,6 +388,113 @@ function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
     return df_intra
 end
 
+function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFrame)
+    # Get the flows dataframe to filter and create new columns
+    df = energy_problem.dataframes[:flows]
+    df = filter(
+        row ->
+            energy_problem.graph[row.from].type == "hub" ||
+                energy_problem.graph[row.to].type == "hub",
+        df,
+    )
+
+    df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
+    df = select(df, [:from, :to, :year, :rep_period, :time, :solution])
+
+    # Exclude lat and lon columns from df_assets
+    assets = select(assets, Not([:lat, :lon]))
+
+    # Merge df with df_assets
+    df_assets_from = rename(
+        assets,
+        Dict(:type => :type_from, :country => :country_from, :technology => :technology_from),
+    )
+    leftjoin!(df, df_assets_from; on = :from => :name)
+    df_assets_to = rename(
+        assets,
+        Dict(:type => :type_to, :country => :country_to, :technology => :technology_to),
+    )
+    leftjoin!(df, df_assets_to; on = :to => :name)
+
+    # get assets flows going into the hub that are not storage
+    _df = filter(
+        row ->
+            row.country_from == row.country_to &&
+                row.type_from != "hub" &&
+                row.type_from != "storage" &&
+                row.type_to != "storage",
+        df,
+    )
+    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    df_incoming_assets_flows = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_incoming_assets_flows, [:country_from => :country, :technology_from => :technology])
+
+    # get storage discharge
+    _df = filter(row -> row.country_from == row.country_to && row.type_from == "storage", df)
+    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    df_storage_discharge = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_storage_discharge, [:country_from => :country, :technology_from => :technology])
+    df_storage_discharge.technology = string.(df_storage_discharge.technology, "_discharge")
+
+    # get storage charge
+    _df = filter(row -> row.country_from == row.country_to && row.type_to == "storage", df)
+    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    df_storage_charge = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_storage_charge, [:country_from => :country, :technology_from => :technology])
+    df_storage_charge.technology = string.(df_storage_charge.technology, "_charge")
+
+    # get exports to other countries
+    _df = filter(row -> row.country_from != row.country_to, df)
+    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    df_exports = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_exports, [:country_from => :country, :technology_from => :technology])
+    df_exports.technology .= "Exports"
+
+    # get imports from other countries
+    _df = filter(row -> row.country_from != row.country_to, df)
+    gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
+    df_imports = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_imports, [:country_to => :country, :technology_to => :technology])
+    df_imports.technology .= "Imports"
+
+    # get demand
+    _df = filter(row -> row.country_from == row.country_to && row.type_to == "consumer", df)
+    gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
+    df_demand_to = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_demand_to, [:country_to => :country, :technology_to => :technology])
+
+    _df = filter(row -> row.country_from == row.country_to && row.type_from == "consumer", df)
+    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    df_demand_from = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_demand_from, [:country_from => :country, :technology_from => :technology])
+
+    df_balance = vcat(
+        df_incoming_assets_flows,
+        df_storage_discharge,
+        df_storage_charge,
+        df_exports,
+        df_imports,
+        df_demand_to,
+        df_demand_from,
+    )
+
+    return df_balance
+end
+
 # Function for plotting the prices
 
 """
