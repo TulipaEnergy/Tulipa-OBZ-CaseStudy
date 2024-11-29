@@ -479,6 +479,7 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     end
     rename!(df_storage_charge, [:country_from => :country, :technology_from => :technology])
     df_storage_charge.technology = string.(df_storage_charge.technology, "_charge")
+    df_storage_charge.solution = -df_storage_charge.solution
 
     # get exports to other countries
     _df = filter(row -> row.country_from != row.country_to, df)
@@ -488,6 +489,7 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     end
     rename!(df_exports, [:country_from => :country, :technology_from => :technology])
     df_exports.technology .= "Exports"
+    df_exports.solution = -df_exports.solution
 
     # get imports from other countries
     _df = filter(row -> row.country_from != row.country_to, df)
@@ -711,8 +713,9 @@ function plot_country_balance(
         labels = reshape(technologies, 1, length(technologies)),
         bar_position = :stack,
         size = (1200, 600),
-        left_margin = [5mm 0mm],
-        bottom_margin = [5mm 0mm],
+        left_margin = [4mm 0mm],
+        bottom_margin = [4mm 0mm],
+        legend_column = 4,
         xlabel = "Hour",
         ylabel = "[GWh]",
         dpi = 600,
