@@ -687,151 +687,48 @@ function plot_intra_storage_levels(
     return p
 end
 
-function plot_balance_NL()
-    energy_problem.dataframes[:flows]
-
-    df_production = DataFrame()
-    df_interconnection = DataFrame()
-
-    tech_names = Dict(
-        ("NL_Battery", "NL_E_Balance") => "BatteryCharge",
-        ("NL_E_Balance", "NL_Battery") => "BatteryDischarge",
-        ("NL_Wind_Onshore", "NL_E_Balance") => "WindOnshore",
-        ("NL_Wind_Offshore", "NL_E_Balance") => "WindOffshore",
-        ("NL_Solar", "NL_E_Balance") => "Solar",
-        ("NL_Gas", "NL_E_Balance") => "Gas",
-        ("NL_OCGT", "NL_E_Balance") => "OCGT",
-        #("NL_E_Balance", "NL_E_Demand") => "Demand",
-        ("NL_E_ENS", "NL_E_Demand") => "ENS",
-        # ("NL_E_Balance", "BE_E_Balance") => "NL_BE",
-        # ("DE_E_Balance", "NL_E_Balance") => "DE_NL",
-        # ("DK_E_Balance", "NL_E_Balance") => "DK_NL",
-        # ("UK_E_Balance", "NL_E_Balance") => "UK_NL",
-        # ("NO_E_Balance", "NL_E_Balance") => "NO_NL",
+function plot_country_balance(
+    df::DataFrame;
+    country::String,
+    year::Int,
+    rep_period::Int,
+    range_to_plot = [],
+    xticks = [],
+)
+    df = filter(
+        row -> row.country == country && row.year == year && row.rep_period == rep_period,
+        df,
     )
-    # filter by from and to for NL
+    technologies = unique(df.technology)
+    technologies = filter!(x -> x != "Demand", technologies)
 
-    for (key, name) in tech_names
-        df_flows = filter(
-            row -> occursin(key[1], String(row.from)) && occursin(key[2], String(row.to)),
-            energy_problem.dataframes[:flows],
-        )
-        df_production[!, name] = df_flows[!, :solution] / 1e3
-    end
-
-    df_production[!, "Battery"] =
-        df_production[!, "BatteryCharge"] - df_production[!, "BatteryDischarge"]
-
-    interconnection_names = Dict(
-        ("NL_E_Balance", "BE_E_Balance") => "NL_BE",
-        ("DE_E_Balance", "NL_E_Balance") => "DE_NL",
-        ("DK_E_Balance", "NL_E_Balance") => "DK_NL",
-        ("UK_E_Balance", "NL_E_Balance") => "UK_NL",
-        ("NO_E_Balance", "NL_E_Balance") => "NO_NL",
-    )
-
-    for (key, name) in interconnection_names
-        df_flows = filter(
-            row -> occursin(key[1], String(row.from)) && occursin(key[2], String(row.to)),
-            energy_problem.dataframes[:flows],
-        )
-        # @show name
-        rows = size(df_flows)[1]
-        if rows < 8760
-            values = []
-            n_repeat = 8760 / rows
-            for row in 1:rows
-                for i in 1:n_repeat
-                    push!(values, df_flows[row, :solution])
-                end
-            end
-        else
-            values = df_flows[!, :solution]
-        end
-        # @show size(values)
-        df_interconnection[!, name] = values / 1e3
-    end
-
-    df_production[!, "Exchange"] =
-        df_interconnection[!, "DE_NL"] +
-        df_interconnection[!, "DK_NL"] +
-        df_interconnection[!, "UK_NL"] +
-        df_interconnection[!, "NO_NL"] - df_interconnection[!, "NL_BE"]
-
-    df_demand = filter(
-        row ->
-            occursin("NL_E_Balance", String(row.from)) &&
-                occursin("NL_E_Demand", String(row.to)),
-        energy_problem.dataframes[:flows],
-    )
-
-    new_col_order = [
-        "ENS",
-        "OCGT",
-        "Gas",
-        "Exchange",
-        "Battery",
-        "WindOffshore",
-        "WindOnshore",
-        "Solar",
-        #"Demand",
-    ]
-
-    tech_colors = Dict(
-        "ENS" => :red,
-        "OCGT" => :lightskyblue,
-        "Gas" => :navyblue,
-        "Exchange" => :ivory3,
-        "Battery" => :orchid,
-        "WindOffshore" => :aquamarine,
-        "WindOnshore" => :darkgreen,
-        "Solar" => :darkorange,
-        #"Demand" => :black,
-    )
-
-    df_production = df_production[!, new_col_order]
-
-    labels_names = DataFrames.names(df_production)
-
-    tech_colors_name = [tech_colors[name] for name in labels_names]
-
-    range_to_plot = 1:168 #4368:4536
+    df_unstack = unstack(df, :technology, :solution)
+    demand = df_unstack.Demand
+    df_unstack = select!(df_unstack, technologies)
 
     groupedbar(
-        Matrix(df_production[range_to_plot, :]);
+        Matrix(df_unstack) / 1000;
+        labels = reshape(technologies, 1, length(technologies)),
         bar_position = :stack,
-        labels = reshape(labels_names, 1, length(labels_names)),
-        color = reshape(tech_colors_name, 1, length(tech_colors_name)),
-        #yticks = -10:5:25,
-        #ylims = (-10, 25),
-        #legend = :outerbottom,
-        #legend = :topright,
-        #legend = :outertopright,
-        legend = :bottom,
-        legend_column = 5,
-        legend_font_pointsize = 8,
         size = (1200, 600),
         left_margin = [5mm 0mm],
         bottom_margin = [5mm 0mm],
-        #top_margin = [5mm 0mm],
         xlabel = "Hour",
-        xticks = 0:12:168,
-        xlims = (0, 168),
         ylabel = "[GWh]",
-        #title = "Production in NL",
         dpi = 600,
     )
 
     # add a line for the demand
-    p = plot!(
-        df_demand[range_to_plot, :solution] / 1e3;
-        label = "Demand",
-        color = :black,
-        linewidth = 3,
-        linestyle = :dash,
-    )
+    p = plot!(demand / 1000; label = "Demand", color = :black, linewidth = 3, linestyle = :dash)
 
-    savefig("outputs/eu-case-balance.png")
+    # if xticks are provided, set them
+    if !isempty(xticks)
+        xticks!(xticks)
+    end
 
-    return @show p
+    # if range_to_plot is provided, set it
+    if !isempty(range_to_plot)
+        xlims!(range_to_plot)
+    end
+    return p
 end
