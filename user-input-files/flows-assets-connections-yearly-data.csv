@@ -159,6 +159,7 @@ NO_Wind_Offshore,NO_E_Balance,2030,0.00417,1
 NO_Solar,NO_E_Balance,2030,0,1
 NO_E_Balance,NO_Pump_Hydro_Open,2030,0,0.875
 NO_Pump_Hydro_Open,NO_E_Balance,2030,0,0.875
+NO_Hydro_Reservoir,NO_E_Balance,2030,0,1
 ES_E_Balance,ES_E_Demand,2030,0,1
 ES_E_ENS,ES_E_Demand,2030,1,1
 ES_Wind_Onshore,ES_E_Balance,2030,0.00206,1
@@ -206,6 +207,7 @@ MT_Gas,MT_E_Balance,2030,0.079858571,1
 SI_E_Balance,SI_E_Demand,2030,0,1
 SI_E_ENS,SI_E_Demand,2030,1,1
 SI_Wind_Onshore,SI_E_Balance,2030,0.00206,1
+SI_Wind_Offshore,SI_E_Balance,2030,0.00417,1
 SI_Solar,SI_E_Balance,2030,0,1
 SI_Hydro,SI_E_Balance,2030,0,1
 SI_Nuclear,SI_E_Balance,2030,0.0115,1
@@ -276,6 +278,7 @@ FI_OCGT,FI_E_Balance,2030,0.10993,1
 HR_E_Balance,HR_E_Demand,2030,0,1
 HR_E_ENS,HR_E_Demand,2030,1,1
 HR_Wind_Onshore,HR_E_Balance,2030,0.00206,1
+HR_Wind_Offshore,HR_E_Balance,2030,0.00417,1
 HR_Solar,HR_E_Balance,2030,0,1
 HR_Hydro,HR_E_Balance,2030,0,1
 HR_Hydro_Reservoir,HR_E_Balance,2030,0,1
@@ -317,6 +320,7 @@ BG_OCGT,BG_E_Balance,2030,0.10993,1
 RO_E_Balance,RO_E_Demand,2030,0,1
 RO_E_ENS,RO_E_Demand,2030,1,1
 RO_Wind_Onshore,RO_E_Balance,2030,0.00206,1
+RO_Wind_Offshore,RO_E_Balance,2030,0.00417,1
 RO_Solar,RO_E_Balance,2030,0,1
 RO_Hydro,RO_E_Balance,2030,0,1
 RO_Hydro_Reservoir,RO_E_Balance,2030,0,1
@@ -335,3 +339,10 @@ CY_Solar,CY_E_Balance,2030,0,1
 CY_E_Balance,CY_Battery,2030,0,0.955
 CY_Battery,CY_E_Balance,2030,0,0.955
 CY_Gas,CY_E_Balance,2030,0.079858571,1
+DK_Battery,DK_E_Balance,2030,0,0.955
+BG_Battery,BG_E_Balance,2030,0,0.955
+FR_Battery,FR_E_Balance,2030,0,0.955
+LV_Battery,LV_E_Balance,2030,0,0.955
+PT_Battery,PT_E_Balance,2030,0,0.955
+SK_Battery,SK_E_Balance,2030,0,0.955
+OBZLL_Wind_Offshore,OBZLL_E_Balance,2030,0.00417,1
