@@ -703,9 +703,10 @@ function plot_country_balance(
     )
     technologies = unique(df.technology)
     technologies = filter!(x -> x != "Demand", technologies)
+    has_demand = "Demand" in unique(df.technology) ? true : false
 
     df_unstack = unstack(df, :technology, :solution)
-    demand = df_unstack.Demand
+    demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack,1))
     df_unstack = select!(df_unstack, technologies)
 
     groupedbar(
