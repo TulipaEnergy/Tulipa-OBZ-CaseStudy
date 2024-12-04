@@ -24,6 +24,6 @@ docs/site/
 Manifest.toml
 
 # others
-outputs
+outputs*
 *.log
 *.lp
