@@ -94,6 +94,7 @@ hydro_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
     xticks = 0:730:8760,
+    ylims = (0, 1),
 )
 
 balance_plot = plot_country_balance(

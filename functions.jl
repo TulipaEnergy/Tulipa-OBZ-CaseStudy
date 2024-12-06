@@ -638,6 +638,7 @@ function plot_intra_storage_levels(
     rep_periods = [],
     xlims = [],
     xticks = [],
+    ylims = [],
 )
 
     # filtering the assets
@@ -686,6 +687,9 @@ function plot_intra_storage_levels(
     # if range_to_plot is provided, set it
     if !isempty(xlims)
         xlims!(xlims)
+    end
+    if !isempty(ylims)
+        ylims!(ylims)
     end
     return p
 end
