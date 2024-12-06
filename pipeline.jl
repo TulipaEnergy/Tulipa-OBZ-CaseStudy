@@ -86,7 +86,7 @@ prices_plot =
 batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
-    range_to_plot = (8760 / 2, 8760 / 2 + 168),
+    xlims = (8760 / 2, 8760 / 2 + 168),
     xticks = 0:12:8760,
 )
 
@@ -101,8 +101,9 @@ balance_plot = plot_country_balance(
     country = "NL",
     year = 2030,
     rep_period = 1,
-    range_to_plot = (8760 / 2, 8760 / 2 + 168),
+    xlims = (8760 / 2, 8760 / 2 + 168),
     xticks = 0:6:8760,
+    ylims = (-50, 75),
 )
 
 # Save the plots

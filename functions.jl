@@ -636,7 +636,7 @@ function plot_intra_storage_levels(
     assets = [],
     years = [],
     rep_periods = [],
-    range_to_plot = [],
+    xlims = [],
     xticks = [],
 )
 
@@ -684,8 +684,8 @@ function plot_intra_storage_levels(
     end
 
     # if range_to_plot is provided, set it
-    if !isempty(range_to_plot)
-        xlims!(range_to_plot)
+    if !isempty(xlims)
+        xlims!(xlims)
     end
     return p
 end
@@ -695,8 +695,9 @@ function plot_country_balance(
     country::String,
     year::Int,
     rep_period::Int,
-    range_to_plot = [],
+    xlims = [],
     xticks = [],
+    ylims = [],
 )
     df = filter(
         row -> row.country == country && row.year == year && row.rep_period == rep_period,
@@ -711,6 +712,12 @@ function plot_country_balance(
     has_demand = "Demand" in unique(df.technology) ? true : false
 
     df_unstack = unstack(df, :technology, :solution)
+    if "IncomingTransportFlow" ∉ names(df_unstack)
+        df_unstack.IncomingTransportFlow = zeros(size(df_unstack, 1))
+    end
+    if "OutgoingTransportFlow" ∉ names(df_unstack)
+        df_unstack.OutgoingTransportFlow = zeros(size(df_unstack, 1))
+    end
     df_unstack.NetExchange = df_unstack.IncomingTransportFlow .- df_unstack.OutgoingTransportFlow
     demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack, 1))
     df_unstack = select!(df_unstack, technologies)
@@ -722,7 +729,7 @@ function plot_country_balance(
         size = (1200, 600),
         left_margin = [4mm 0mm],
         bottom_margin = [4mm 0mm],
-        legend_column = 4,
+        legend_column = min(length(technologies), 4),
         xlabel = "Hour",
         ylabel = "[GWh]",
         dpi = 600,
@@ -738,8 +745,11 @@ function plot_country_balance(
     end
 
     # if range_to_plot is provided, set it
-    if !isempty(range_to_plot)
-        xlims!(range_to_plot)
+    if !isempty(xlims)
+        xlims!(xlims)
+    end
+    if !isempty(ylims)
+        ylims!(ylims)
     end
     return p
 end
