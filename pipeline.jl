@@ -92,11 +92,11 @@ batteries_storage_levels_plot = plot_intra_storage_levels(
 
 hydro_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
-    assets = ["ES_Hydro_Reservoir", "NO_Pump_Hydro_Open", "FR_Hydro_Reservoir"],
+    assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
     xticks = 0:730:8760,
 )
 
-balance_NL = plot_country_balance(
+balance_plot = plot_country_balance(
     balances;
     country = "NL",
     year = 2030,
@@ -115,5 +115,5 @@ savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-balance_NL_plot_name = joinpath(output_dir, "eu-case-balance-NL.png")
-savefig(balance_NL, balance_NL_plot_name)
+balance_plot_name = joinpath(output_dir, "eu-case-balance-NL.png")
+savefig(balance_plot, balance_plot_name)

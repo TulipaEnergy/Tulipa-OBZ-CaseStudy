@@ -485,21 +485,21 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     # get exports to other countries
     _df = filter(row -> row.country_from != row.country_to, df)
     gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
-    df_exports = combine(gdf) do sdf
+    df_outgoing = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_exports, [:country_from => :country, :technology_from => :technology])
-    df_exports.technology .= "Exports"
-    df_exports.solution = -df_exports.solution
+    rename!(df_outgoing, [:country_from => :country, :technology_from => :technology])
+    df_outgoing.technology .= "OutgoingTransportFlow"
+    df_outgoing.solution = df_outgoing.solution
 
     # get imports from other countries
     _df = filter(row -> row.country_from != row.country_to, df)
     gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
-    df_imports = combine(gdf) do sdf
+    df_incoming = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_imports, [:country_to => :country, :technology_to => :technology])
-    df_imports.technology .= "Imports"
+    rename!(df_incoming, [:country_to => :country, :technology_to => :technology])
+    df_incoming.technology .= "IncomingTransportFlow"
 
     # get demand
     _df = filter(row -> row.country_from == row.country_to && row.type_to == "consumer", df)
@@ -520,8 +520,8 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
         df_incoming_assets_flows,
         df_storage_discharge,
         df_storage_charge,
-        df_exports,
-        df_imports,
+        df_outgoing,
+        df_incoming,
         df_demand_to,
         df_demand_from,
     )
@@ -703,10 +703,15 @@ function plot_country_balance(
         df,
     )
     technologies = unique(df.technology)
-    technologies = filter!(x -> x != "Demand", technologies)
+    technologies = push!(technologies, "NetExchange")
+    technologies = filter!(
+        x -> x != "Demand" && x != "IncomingTransportFlow" && x != "OutgoingTransportFlow",
+        technologies,
+    )
     has_demand = "Demand" in unique(df.technology) ? true : false
 
     df_unstack = unstack(df, :technology, :solution)
+    df_unstack.NetExchange = df_unstack.IncomingTransportFlow .- df_unstack.OutgoingTransportFlow
     demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack, 1))
     df_unstack = select!(df_unstack, technologies)
 
