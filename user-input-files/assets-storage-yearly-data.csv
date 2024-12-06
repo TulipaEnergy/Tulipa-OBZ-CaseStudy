@@ -15,7 +15,7 @@ IE_Battery,2030,4,1,1,,0,0,5
 IE_Pump_Hydro_Closed,2030,24,1,1,850,292,0,5
 CH_Battery,2030,4,1,1,,0,0,5
 CH_Pump_Hydro_Closed,2030,24,1,1,35000,2170,0,5
-CH_Pump_Hydro_Open,2030,24,1,1,4400000,10732,0,5
+CH_Pump_Hydro_Open,2030,24,1,1,5280000,10732,0,5
 AT_Hydro_Reservoir,2030,24,1,1,378500,2489,0,5
 AT_Battery,2030,4,1,1,,0,0,5
 AT_Pump_Hydro_Closed,2030,24,1,1,900,300,0,5
@@ -31,7 +31,7 @@ PL_Pump_Hydro_Open,2030,24,1,1,750,216,0,5
 SE_Hydro_Reservoir,2030,24,1,1,15965663,16447,0,5
 SE_Battery,2030,4,1,1,,0,0,5
 NO_Pump_Hydro_Open,2030,24,1,1,2280,135,0,5
-NO_Hydro_Reservoir,2030,24,1,1,44788700,38048,0,5
+NO_Hydro_Reservoir,2030,24,1,1,5.374644e7,38048,0,5
 ES_Hydro_Reservoir,2030,24,1,1,5824250,10972,0,5
 ES_Battery,2030,4,1,1,,0,0,5
 ES_Pump_Hydro_Closed,2030,24,1,1,49500,6866,0,5
@@ -45,7 +45,7 @@ IT_Pump_Hydro_Open,2030,24,1,1,144495,3254,0,5
 SI_Battery,2030,4,1,1,,0,0,5
 SI_Pump_Hydro_Closed,2030,24,1,1,1300,180,0,5
 HU_Battery,2030,4,1,1,,0,0,5
-SK_Hydro_Reservoir,2030,24,1,1,8621,21,0,5
+SK_Hydro_Reservoir,2030,24,1,1,10345,21,0,5
 SK_Pump_Hydro_Closed,2030,24,1,1,2050,650,0,5
 SK_Pump_Hydro_Open,2030,24,1,1,22775,276,0,5
 LT_Battery,2030,4,1,1,,0,0,5
