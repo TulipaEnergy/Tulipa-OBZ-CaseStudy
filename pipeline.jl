@@ -86,15 +86,13 @@ prices_plot =
 batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
-    xlims = (8760 / 2, 8760 / 2 + 168),
-    xticks = 0:12:8760,
+    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
 
 hydro_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
-    xticks = 0:730:8760,
-    ylims = (0, 1),
+    plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
 )
 
 balance_plot = plot_country_balance(

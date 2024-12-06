@@ -636,9 +636,7 @@ function plot_intra_storage_levels(
     assets = [],
     years = [],
     rep_periods = [],
-    xlims = [],
-    xticks = [],
-    ylims = [],
+    plots_args = Dict(),
 )
 
     # filtering the assets
@@ -666,7 +664,7 @@ function plot_intra_storage_levels(
     grouped_df = groupby(df, [:asset, :year, :rep_period])
 
     # for each group, plot the time vs the price in the same plot
-    p = plot()
+    p = plot(; plots_args...)
     for group in grouped_df
         plot!(
             group[!, :time],
@@ -677,19 +675,6 @@ function plot_intra_storage_levels(
             linewidth = 3,
             dpi = 600,
         )
-    end
-
-    # if xticks are provided, set them
-    if !isempty(xticks)
-        xticks!(xticks)
-    end
-
-    # if range_to_plot is provided, set it
-    if !isempty(xlims)
-        xlims!(xlims)
-    end
-    if !isempty(ylims)
-        ylims!(ylims)
     end
     return p
 end
