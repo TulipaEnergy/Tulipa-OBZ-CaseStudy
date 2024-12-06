@@ -354,6 +354,7 @@ function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
     df = energy_problem.dataframes[:highest_in_out]
     df = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
     df[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
+    df[!, :price] = df[!, :price] ./ (df[!, :timesteps_block] .|> length)
 
     df_prices = unroll_dataframe(df, [:asset, :year, :rep_period])
     select!(df_prices, [:asset, :year, :rep_period, :time, :price])
@@ -706,7 +707,7 @@ function plot_country_balance(
     has_demand = "Demand" in unique(df.technology) ? true : false
 
     df_unstack = unstack(df, :technology, :solution)
-    demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack,1))
+    demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack, 1))
     df_unstack = select!(df_unstack, technologies)
 
     groupedbar(
