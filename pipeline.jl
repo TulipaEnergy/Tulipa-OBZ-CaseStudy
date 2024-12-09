@@ -80,40 +80,37 @@ balance_file_name = joinpath(output_dir, "eu-case-balance-per-country.csv")
 CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0))
 
 # Plot the results
-prices_plot =
-    plot_electricity_prices(prices; assets = ["NL_E_Balance", "UK_E_Balance"], xticks = 0:730:8760)
+prices_plot = plot_electricity_prices(
+    prices;
+    assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
+    plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+)
+prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
+savefig(prices_plot, prices_plot_name)
 
 batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
+batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
+savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 hydro_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
     plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
 )
-
-balance_plot = plot_country_balance(
-    balances;
-    country = "NL",
-    year = 2030,
-    rep_period = 1,
-    xlims = (8760 / 2, 8760 / 2 + 168),
-    xticks = 0:6:8760,
-    ylims = (-50, 75),
-)
-
-# Save the plots
-prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
-savefig(prices_plot, prices_plot_name)
-
-batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
-savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
-
 hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-balance_plot_name = joinpath(output_dir, "eu-case-balance-NL.png")
+country = "OBZLL"
+balance_plot = plot_country_balance(
+    balances;
+    country = country,
+    year = 2030,
+    rep_period = 1,
+    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760, ylims = (-2, 2)),
+)
+balance_plot_name = joinpath(output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)

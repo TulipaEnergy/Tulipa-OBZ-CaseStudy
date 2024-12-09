@@ -537,7 +537,7 @@ end
     assets = [],
     years = [],
     rep_periods = [],
-    xticks = [],
+    plots_args = Dict(),
 )
 
 Plots electricity prices over time for specified assets, years, and representative periods.
@@ -547,7 +547,7 @@ Plots electricity prices over time for specified assets, years, and representati
 - `assets`: An optional array of assets to filter the data. If empty, all assets are included.
 - `years`: An optional array of years to filter the data. If empty, all years are included.
 - `rep_periods`: An optional array of representative periods to filter the data. If empty, all representative periods are included.
-- `xticks`: An optional array of x-ticks to set on the plot.
+- `plots_args`: Dictionary with extra arguments for the plot from Plots.jl.
 
 # Returns
 - A plot object with electricity prices over time for the specified filters.
@@ -558,7 +558,7 @@ function plot_electricity_prices(
     assets = [],
     years = [],
     rep_periods = [],
-    xticks = [],
+    plots_args = Dict(),
 )
 
     # filtering the assets
@@ -586,7 +586,7 @@ function plot_electricity_prices(
     grouped_df = groupby(df, [:asset, :year, :rep_period])
 
     # for each group, plot the time vs the price in the same plot
-    p = plot()
+    p = plot(; plots_args...)
     for group in grouped_df
         sorted_group = sort(group, :price; rev = true)
         plot!(
@@ -600,10 +600,6 @@ function plot_electricity_prices(
         )
     end
 
-    # if xticks are provided, set them
-    if !isempty(xticks)
-        xticks!(xticks)
-    end
     return p
 end
 
@@ -613,8 +609,7 @@ end
         assets = [],
         years = [],
         rep_periods = [],
-        range_to_plot = [],
-        xticks = [],
+        plots_args = Dict(),
     ) -> Plot
 
 Plot the intra storage levels for the given assets, years, and representative periods.
@@ -624,8 +619,7 @@ Plot the intra storage levels for the given assets, years, and representative pe
 - `assets`: An array of assets to filter the data by. If empty, all assets are included.
 - `years`: An array of years to filter the data by. If empty, all years are included.
 - `rep_periods`: An array of representative periods to filter the data by. If empty, all representative periods are included.
-- `range_to_plot`: An array specifying the range of x-axis to plot. If empty, the full range is plotted.
-- `xticks`: An array specifying the x-axis ticks. If empty, default ticks are used.
+- `plots_args`: Dictionary with extra arguments for the plot from Plots.jl.
 
 # Returns
 - `Plot`: A plot object showing the storage levels over time for the specified filters.
@@ -684,9 +678,7 @@ function plot_country_balance(
     country::String,
     year::Int,
     rep_period::Int,
-    xlims = [],
-    xticks = [],
-    ylims = [],
+    plots_args = Dict(),
 )
     df = filter(
         row -> row.country == country && row.year == year && row.rep_period == rep_period,
@@ -726,19 +718,8 @@ function plot_country_balance(
     )
 
     # add a line for the demand
-    p = plot!(demand / 1000; label = "Demand", color = :black, linewidth = 3, linestyle = :dash)
+    p = plot!(; plots_args...)
+    plot!(demand / 1000; label = "Demand", color = :black, linewidth = 3, linestyle = :dash)
 
-    # if xticks are provided, set them
-    if !isempty(xticks)
-        xticks!(xticks)
-    end
-
-    # if range_to_plot is provided, set it
-    if !isempty(xlims)
-        xlims!(xlims)
-    end
-    if !isempty(ylims)
-        ylims!(ylims)
-    end
     return p
 end
