@@ -194,3 +194,4 @@ CY_Wind_Onshore,producer,400,CY,Wind_Onshore,35.1264,33.4299
 CY_Solar,producer,2273,CY,Solar,35.1264,33.4299
 CY_Gas,producer,524,CY,Gas,35.1264,33.4299
 OBZLL_Wind_Offshore,producer,2000,OBZLL,Wind_Offshore,53.1705,3.5288
+EU_SMR_CCS,producer,999999999,EU,SMR_CCS,45.3,-3.6
