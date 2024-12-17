@@ -463,6 +463,23 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     end
     rename!(df_incoming_assets_flows, [:country_from => :country, :technology_from => :technology])
 
+    # get assets flows going out the hub that are not storage or demand
+    _df = filter(
+        row ->
+            row.country_to == row.country_from &&
+                row.type_to != "hub" &&
+                row.type_to != "storage" &&
+                row.type_from != "storage" &&
+                row.type_to != "consumer",
+        df,
+    )
+    gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
+    df_outgoing_assets_flows = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_outgoing_assets_flows, [:country_to => :country, :technology_to => :technology])
+    df_outgoing_assets_flows.solution = -df_outgoing_assets_flows.solution
+
     # get storage discharge
     _df = filter(row -> row.country_from == row.country_to && row.type_from == "storage", df)
     gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
@@ -518,6 +535,7 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
 
     df_balance = vcat(
         df_incoming_assets_flows,
+        df_outgoing_assets_flows,
         df_storage_discharge,
         df_storage_charge,
         df_outgoing,
