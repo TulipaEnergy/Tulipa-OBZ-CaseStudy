@@ -132,6 +132,7 @@ plot(
     xlabel = "Hour",
     ylabel = "[GWh]",
     linewidth = 2,
+    xlims = (8760 / 2, 8760 / 2 + 168),
     dpi = 600,
 )
 savefig(joinpath(output_dir, "flows-$from_asset-$to_asset.png"))
