@@ -352,22 +352,19 @@ This function processes the `energy_problem` to extract and compute prices for h
 """
 function get_prices_dataframe(energy_problem::EnergyProblem)
     df = energy_problem.dataframes[:highest_in_out]
-    df_hubs = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
-    df_hubs[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
-    df_hubs[!, :price] = df_hubs[!, :price] ./ (df_hubs[!, :timesteps_block] .|> length)
-
-    df_hubs_prices = unroll_dataframe(df_hubs, [:asset, :year, :rep_period])
-    select!(df_hubs_prices, [:asset, :year, :rep_period, :time, :price])
-
-    df_consumers = filter(row -> energy_problem.graph[row.asset].type == "consumer", df)
-    df_consumers[!, :price] = energy_problem.solution.duals[:consumer_balance] * 1e3
-    df_consumers[!, :price] = df_consumers[!, :price] ./ (df_consumers[!, :timesteps_block] .|> length)
-
-    df_consumer_prices = unroll_dataframe(df_consumers, [:asset, :year, :rep_period])
-    select!(df_consumer_prices, [:asset, :year, :rep_period, :time, :price])
-
+    df_hubs_prices = _process_prices(df, "hub", :hub_balance)
+    df_consumer_prices = _process_prices(df, "consumer", :consumer_balance)
     df_prices = vcat(df_hubs_prices, df_consumer_prices; cols = :union)
 
+    return df_prices
+end
+
+function _process_prices(df, asset_type, duals_key)
+    df_filtered = filter(row -> energy_problem.graph[row.asset].type == asset_type, df)
+    df_filtered[!, :price] = energy_problem.solution.duals[duals_key] * 1e3
+    df_filtered[!, :price] = df_filtered[!, :price] ./ (df_filtered[!, :timesteps_block] .|> length)
+    df_prices = unroll_dataframe(df_filtered, [:asset, :year, :rep_period])
+    select!(df_prices, [:asset, :year, :rep_period, :time, :price])
     return df_prices
 end
 
