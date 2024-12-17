@@ -114,3 +114,24 @@ balance_plot = plot_country_balance(
 )
 balance_plot_name = joinpath(output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)
+
+# save individual flows solutions
+save_solution_to_file(output_dir, energy_problem)
+flows = CSV.read(joinpath(output_dir, "flows.csv"), DataFrame)
+
+# filter rows by from and to columns for a specific values
+from_asset = "NL_E_Balance"
+to_asset = "NL_electrolyzer"
+flows_filtered = filter(row -> row.from == from_asset && row.to == to_asset, flows)
+
+# plot the filtered flows
+plot(
+    flows_filtered[!, :timestep],
+    flows_filtered[!, :value] / 1000;
+    label = string(from_asset, " -> ", to_asset),
+    xlabel = "Hour",
+    ylabel = "[GWh]",
+    linewidth = 2,
+    dpi = 600,
+)
+savefig(joinpath(output_dir, "flows-$from_asset-$to_asset.png"))
