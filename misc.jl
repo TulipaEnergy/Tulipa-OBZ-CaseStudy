@@ -133,3 +133,7 @@ for row in eachrow(df)
 end
 
 CSV.write("user-input-files/max-reservoir-levels-profiles.csv", _df)
+
+# change partition on the files
+DuckDB.query(connection, "UPDATE assets_rep_periods_partitions SET partition = 1")
+DuckDB.query(connection, "UPDATE flows_rep_periods_partitions SET partition = 1")
