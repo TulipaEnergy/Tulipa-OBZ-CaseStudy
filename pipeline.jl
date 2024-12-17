@@ -65,7 +65,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 )
 
 # Save solution
-prices = get_hubs_electricity_prices_dataframe(energy_problem)
+prices = get_prices_dataframe(energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
 balances = get_balance_per_country(energy_problem, df_assets_basic_data)
 

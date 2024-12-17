@@ -336,9 +336,9 @@ function unroll_dataframe(df::DataFrame, cols_to_groupby::Vector{Symbol})
 end
 
 """
-    get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
+    get_prices_dataframe(energy_problem::EnergyProblem)
 
-Generate a DataFrame containing electricity prices for hubs over time from the given energy problem.
+Generate a DataFrame containing prices for hubs and consumers over time from the given energy problem.
 
 # Arguments
 - `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the necessary data and solution.
@@ -347,17 +347,27 @@ Generate a DataFrame containing electricity prices for hubs over time from the g
 - `DataFrame`: A DataFrame with columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`, representing the electricity prices for hubs over time.
 
 # Description
-This function processes the `energy_problem` to extract and compute electricity prices for hubs. It filters the relevant data, calculates the duration of each timestep block, and constructs a new DataFrame with the time and price information for each hub. The resulting DataFrame is grouped by `:asset`, `:year`, and `:rep_period`, and the time steps are expanded accordingly.
+This function processes the `energy_problem` to extract and compute prices for hubs and consumers. It filters the relevant data, calculates the duration of each timestep block, and constructs a new DataFrame with the time and price information for each hub and consumer. The resulting DataFrame is grouped by `:asset`, `:year`, and `:rep_period`, and the time steps are expanded accordingly.
 
 """
-function get_hubs_electricity_prices_dataframe(energy_problem::EnergyProblem)
+function get_prices_dataframe(energy_problem::EnergyProblem)
     df = energy_problem.dataframes[:highest_in_out]
-    df = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
-    df[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
-    df[!, :price] = df[!, :price] ./ (df[!, :timesteps_block] .|> length)
+    df_hubs = filter(row -> energy_problem.graph[row.asset].type == "hub", df)
+    df_hubs[!, :price] = energy_problem.solution.duals[:hub_balance] * 1e3
+    df_hubs[!, :price] = df_hubs[!, :price] ./ (df_hubs[!, :timesteps_block] .|> length)
 
-    df_prices = unroll_dataframe(df, [:asset, :year, :rep_period])
-    select!(df_prices, [:asset, :year, :rep_period, :time, :price])
+    df_hubs_prices = unroll_dataframe(df_hubs, [:asset, :year, :rep_period])
+    select!(df_hubs_prices, [:asset, :year, :rep_period, :time, :price])
+
+    df_consumers = filter(row -> energy_problem.graph[row.asset].type == "consumer", df)
+    df_consumers[!, :price] = energy_problem.solution.duals[:consumer_balance] * 1e3
+    df_consumers[!, :price] = df_consumers[!, :price] ./ (df_consumers[!, :timesteps_block] .|> length)
+
+    df_consumer_prices = unroll_dataframe(df_consumers, [:asset, :year, :rep_period])
+    select!(df_consumer_prices, [:asset, :year, :rep_period, :time, :price])
+
+    df_prices = vcat(df_hubs_prices, df_consumer_prices; cols = :union)
+
     return df_prices
 end
 
