@@ -436,6 +436,7 @@ EU_SMR_CCS,RO_H_Demand,2030,0.05,1
 CY_E_Balance,CY_electrolyzer,2030,0,1
 CY_electrolyzer,CY_H_Demand,2030,0,0.65
 EU_SMR_CCS,CY_H_Demand,2030,0.05,1
+OBZLL_E_Balance,OBZLL_E_Demand,2030,0,1
 OBZLL_E_Balance,OBZLL_electrolyzer,2030,0,1
 OBZLL_electrolyzer,OBZLL_H_Demand,2030,0,0.65
 EU_SMR_CCS,OBZLL_H_Demand,2030,0.05,1

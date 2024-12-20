@@ -436,6 +436,7 @@ EU_SMR_CCS,RO_H_Demand,hydrogen
 CY_E_Balance,CY_electrolyzer,electricity
 CY_electrolyzer,CY_H_Demand,hydrogen
 EU_SMR_CCS,CY_H_Demand,hydrogen
+OBZLL_E_Balance,OBZLL_E_Demand,electricity
 OBZLL_E_Balance,OBZLL_electrolyzer,electricity
 OBZLL_electrolyzer,OBZLL_H_Demand,hydrogen
 EU_SMR_CCS,OBZLL_H_Demand,hydrogen
