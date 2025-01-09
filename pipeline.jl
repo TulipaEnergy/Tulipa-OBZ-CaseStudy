@@ -17,12 +17,12 @@ include("functions.jl")
 # Read and transform user input files to Tulipa input files
 user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
-default_values = get_default_values(; default_year = 2030)
+default_values = get_default_values(; default_year = 2050)
 
 # Define TulipaClustering data
 ## Data for clustering
-period_duration = 24
-n_rp = 30
+n_rp = 1               # number of representative periods
+period_duration = 8760 # hours of the representative period
 method = :k_means
 distance = SqEuclidean()
 ## Data for weight fitting
