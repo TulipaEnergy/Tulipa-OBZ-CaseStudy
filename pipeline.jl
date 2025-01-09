@@ -8,6 +8,8 @@ using DataFrames
 using StatsPlots
 using JuMP
 using CSV
+using TulipaClustering
+using Distances
 
 # Include the helper functions file
 include("functions.jl")
@@ -16,6 +18,20 @@ include("functions.jl")
 user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
 default_values = get_default_values(; default_year = 2030)
+
+# Define TulipaClustering data
+## Data for clustering
+period_duration = 24
+n_rp = 30
+method = :k_means
+distance = SqEuclidean()
+## Data for weight fitting
+weight_type = :convex
+tol = 1e-2
+## Data for projected subgradient
+niters = 100
+learning_rate = 0.001
+adaptive_grad = false
 
 # Include file with the pre-processing
 include("preprocess-user-inputs.jl")

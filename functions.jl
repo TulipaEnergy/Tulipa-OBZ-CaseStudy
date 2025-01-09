@@ -24,17 +24,53 @@ Transforms a CSV file containing profile asset data into a long format and write
 - The resulting DataFrame after processing the user files.
 
 """
-function transform_profiles_assets_file(input_file::String, output_file::String)
+function transform_profiles_assets_file(
+    input_file::String,
+    output_profile_file::String,
+    output_mapping_file::String,
+    output_rp_file::String,
+)
     df = CSV.read(input_file, DataFrame)
     columns = setdiff(names(df), ["year", "timestep"])
-    new_df = stack(df, columns; variable_name = :profile_name, value_name = :value)
-    new_df[!, :rep_period] .= 1
-    new_df = select(new_df, [:profile_name, :year, :rep_period, :timestep, :value])
-    open(output_file, "w") do io
+    profile_df = stack(df, columns; variable_name = :profile_name, value_name = :value)
+    TulipaClustering.split_into_periods!(profile_df; period_duration)
+    clustering_result =
+        TulipaClustering.find_representative_periods(profile_df, n_rp; method, distance)
+    TulipaClustering.fit_rep_period_weights!(
+        clustering_result;
+        weight_type,
+        tol,
+        niters,
+        learning_rate,
+        adaptive_grad,
+    )
+    # Save the profiles
+    profile_df = clustering_result.profiles
+    profile_df = select(profile_df, [:profile_name, :year, :rep_period, :timestep, :value])
+    open(output_profile_file, "w") do io
         println(io, join(["", "", "", "", "p.u."], ","))
     end
-    CSV.write(output_file, new_df; append = true, writeheader = true)
-    return new_df
+    CSV.write(output_profile_file, profile_df; append = true, writeheader = true)
+    # Save the mapping data
+    mapping_df = TulipaClustering.weight_matrix_to_df(clustering_result.weight_matrix)
+    mapping_df.year .= default_values["year"]
+    mapping_df = select(mapping_df, [:year, :period, :rep_period, :weight])
+    open(output_mapping_file, "w") do io
+        println(io, join(["", "", "", "p.u."], ","))
+    end
+    CSV.write(output_mapping_file, mapping_df; append = true, writeheader = true)
+    # Save the representative period data
+    rp_data_df = DataFrame(;
+        year = default_values["year"],
+        rep_period = 1:n_rp,
+        num_timesteps = period_duration,
+        resolution = 1.0,
+    )
+    open(output_rp_file, "w") do io
+        println(io, join(["", "", "", "p.u."], ","))
+    end
+    CSV.write(output_rp_file, rp_data_df; append = true, writeheader = true)
+    return nothing
 end
 
 """
