@@ -10,6 +10,7 @@ using JuMP
 using CSV
 using TulipaClustering
 using Distances
+using Statistics
 
 # Include the helper functions file
 include("functions.jl")
@@ -17,12 +18,18 @@ include("functions.jl")
 # Read and transform user input files to Tulipa input files
 user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
+
+# Clean old files and create the directory
+rm(tulipa_files_dir; force = true, recursive = true)
+mkdir(tulipa_files_dir)
+
+# Define default values
 default_values = get_default_values(; default_year = 2050)
 
 # Define TulipaClustering data
 ## Data for clustering
-n_rp = 1               # number of representative periods
-period_duration = 8760 # hours of the representative period
+n_rp = 36               # number of representative periods
+period_duration = 24 # hours of the representative period
 method = :k_means
 distance = SqEuclidean()
 ## Data for weight fitting
@@ -33,7 +40,10 @@ niters = 100
 learning_rate = 0.001
 adaptive_grad = false
 
-# Include file with the pre-processing
+# Include file with the pre-processing of profiles using clustering
+include("preprocess-profiles.jl")
+
+# Include file with the pre-processing the rest of the files
 include("preprocess-user-inputs.jl")
 
 # set up the solver
@@ -124,7 +134,7 @@ country = "OBZLL"
 balance_plot = plot_country_balance(
     balances;
     country = country,
-    year = 2030,
+    year = 2050,
     rep_period = 1,
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760, ylims = (-2, 2)),
 )
