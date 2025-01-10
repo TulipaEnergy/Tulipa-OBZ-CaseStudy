@@ -22,8 +22,6 @@ FR_Wind_Offshore,2050,availability,FR_Wind_Offshore
 FR_Solar,2050,availability,FR_Solar
 FR_Hydro,2050,availability,FR_Hydro
 FR_Hydro_Reservoir,2050,inflows,FR_Hydro_Reservoir_Inflow
-FR_Hydro_Reservoir,2050,min_storage_level,FR_Hydro_Reservoir_Min_Storage_Level
-FR_Hydro_Reservoir,2050,max-storage-level,FR_Hydro_Reservoir_Max_Storage_Level
 FR_Pump_Hydro_Open,2050,inflows,FR_Pump_Hydro_Open_Inflow
 DK_E_Demand,2050,demand,DK_E_Demand
 DK_Wind_Onshore,2050,availability,DK_Wind_Onshore
@@ -44,8 +42,6 @@ CH_Wind_Onshore,2050,availability,CH_Wind_Onshore
 CH_Solar,2050,availability,CH_Solar
 CH_Hydro,2050,availability,CH_Hydro
 CH_Pump_Hydro_Open,2050,inflows,CH_Pump_Hydro_Open_Inflow
-CH_Pump_Hydro_Open,2050,min_storage_level,CH_Pump_Hydro_Open_Min_Storage_Level
-CH_Pump_Hydro_Open,2050,max-storage-level,CH_Pump_Hydro_Open_Max_Storage_Level
 AT_E_Demand,2050,demand,AT_E_Demand
 AT_Wind_Onshore,2050,availability,AT_Wind_Onshore
 AT_Solar,2050,availability,AT_Solar
@@ -74,16 +70,12 @@ SE_Wind_Onshore,2050,availability,SE_Wind_Onshore
 SE_Wind_Offshore,2050,availability,SE_Wind_Offshore
 SE_Solar,2050,availability,SE_Solar
 SE_Hydro_Reservoir,2050,inflows,SE_Hydro_Reservoir_Inflow
-SE_Hydro_Reservoir,2050,min_storage_level,SE_Hydro_Reservoir_Min_Storage_Level
-SE_Hydro_Reservoir,2050,max-storage-level,SE_Hydro_Reservoir_Max_Storage_Level
 NO_E_Demand,2050,demand,NO_E_Demand
 NO_Wind_Onshore,2050,availability,NO_Wind_Onshore
 NO_Wind_Offshore,2050,availability,NO_Wind_Offshore
 NO_Solar,2050,availability,NO_Solar
 NO_Pump_Hydro_Open,2050,inflows,NO_Pump_Hydro_Open_Inflow
 NO_Hydro_Reservoir,2050,inflows,NO_Pump_Hydro_Open_Inflow
-NO_Hydro_Reservoir,2050,min_storage_level,NO_Hydro_Min_Storage_Level
-NO_Hydro_Reservoir,2050,max-storage-level,NO_Hydro_Max_Storage_Level
 ES_E_Demand,2050,demand,ES_E_Demand
 ES_Wind_Onshore,2050,availability,ES_Wind_Onshore
 ES_Wind_Offshore,2050,availability,ES_Wind_Offshore
@@ -121,8 +113,6 @@ SK_Wind_Onshore,2050,availability,SK_Wind_Onshore
 SK_Solar,2050,availability,SK_Solar
 SK_Hydro,2050,availability,SK_Hydro
 SK_Hydro_Reservoir,2050,inflows,SK_Hydro_Reservoir_Inflow
-SK_Hydro_Reservoir,2050,min_storage_level,SK_Hydro_Reservoir_Min_Storage_Level
-SK_Hydro_Reservoir,2050,max-storage-level,SK_Hydro_Reservoir_Max_Storage_Level
 SK_Pump_Hydro_Open,2050,inflows,SK_Pump_Hydro_Open_Inflow
 LT_E_Demand,2050,demand,LT_E_Demand
 LT_Wind_Onshore,2050,availability,LT_Wind_Onshore
@@ -143,8 +133,6 @@ FI_Wind_Onshore,2050,availability,FI_Wind_Onshore
 FI_Wind_Offshore,2050,availability,FI_Wind_Offshore
 FI_Solar,2050,availability,FI_Solar
 FI_Hydro_Reservoir,2050,inflows,FI_Hydro_Reservoir_Inflow
-FI_Hydro_Reservoir,2050,min_storage_level,FI_Hydro_Reservoir_Min_Storage_Level
-FI_Hydro_Reservoir,2050,max-storage-level,FI_Hydro_Reservoir_Max_Storage_Level
 HR_E_Demand,2050,demand,HR_E_Demand
 HR_Wind_Onshore,2050,availability,HR_Wind_Onshore
 HR_Wind_Offshore,2050,availability,HR_Wind_Offshore
