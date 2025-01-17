@@ -1,6 +1,7 @@
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 DuckDB = "d2f5444f-75bc-4fdf-ac35-56f514c445e1"
 DuckDB_jll = "2cbbab25-fc8b-58cf-88d4-687a02676033"
 Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
