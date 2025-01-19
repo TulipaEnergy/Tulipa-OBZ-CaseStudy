@@ -1,11 +1,3 @@
-## transform profiles file
-user_file = "profiles.csv"
-tulipa_file = "profiles-rep-periods.csv"
-transform_profiles_assets_file(
-    joinpath(user_input_dir, user_file),
-    joinpath(tulipa_files_dir, tulipa_file),
-)
-
 ## write graph assets data file
 tulipa_file = "graph-assets-data.csv"
 process_user_files(
@@ -19,7 +11,7 @@ process_user_files(
 
 ## write assets data file
 tulipa_file = "assets-data.csv"
-process_user_files(
+assets_data = process_user_files(
     user_input_dir,
     joinpath(tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.assets.data,
@@ -27,6 +19,16 @@ process_user_files(
     "yearly-data.csv",
     default_values,
 )
+
+## if n_rp = 1 (full-year optimization) update is_seasonal to false
+if n_rp == 1
+    assets_data.is_seasonal .= false
+    output_file = joinpath(tulipa_files_dir, tulipa_file)
+    open(output_file, "w") do io
+        println(io, repeat(",", size(assets_data, 2) - 1))
+    end
+    CSV.write(output_file, assets_data; append = true, writeheader = true)
+end
 
 ## write assets-profiles data file
 tulipa_file = "assets-profiles.csv"
@@ -39,6 +41,17 @@ process_user_files(
     default_values,
 )
 
+## write assets-timeframe-profiles.csv file
+tulipa_file = "assets-timeframe-profiles.csv"
+process_user_files(
+    user_input_dir,
+    joinpath(tulipa_files_dir, tulipa_file),
+    TulipaEnergyModel.schemas.assets.profiles_reference,
+    "assets",
+    "min-max-reservoir-level-profiles.csv",
+    default_values,
+)
+
 ## write assets-rep-periods-partitions data file
 tulipa_file = "assets-rep-periods-partitions.csv"
 process_user_files(
@@ -48,7 +61,8 @@ process_user_files(
     "assets",
     "yearly-data.csv",
     default_values;
-    map_to_rename_user_columns=Dict("name" => "asset"),
+    map_to_rename_user_columns = Dict("name" => "asset"),
+    number_of_rep_periods = n_rp,
 )
 
 ## write graph flows data file
@@ -81,28 +95,6 @@ process_user_files(
     TulipaEnergyModel.schemas.flows.profiles_reference,
     "flows",
     "profiles.csv",
-    default_values,
-)
-
-## write rep-periods-data file
-tulipa_file = "rep-periods-data.csv"
-process_user_files(
-    user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_file),
-    TulipaEnergyModel.schemas.rep_periods.data,
-    "year",
-    "data.csv",
-    default_values,
-)
-
-## write rep-periods-mapping file
-tulipa_file = "rep-periods-mapping.csv"
-process_user_files(
-    user_input_dir,
-    joinpath(tulipa_files_dir, tulipa_file),
-    TulipaEnergyModel.schemas.rep_periods.mapping,
-    "year",
-    "data.csv",
     default_values,
 )
 
