@@ -7,6 +7,7 @@ output_profiles_file = joinpath(tulipa_files_dir, "profiles-rep-periods.csv")
 output_mapping_file = joinpath(tulipa_files_dir, "rep-periods-mapping.csv")
 output_rp_file = joinpath(tulipa_files_dir, "rep-periods-data.csv")
 output_timeframe_profiles_file = joinpath(tulipa_files_dir, "profiles-timeframe.csv")
+output_timeframe_data_file = joinpath(tulipa_files_dir, "timeframe-data.csv")
 
 # Read the input profiles
 profiles_wide_format = CSV.read(input_profiles_file, DataFrame)
@@ -57,18 +58,19 @@ end
 CSV.write(output_mapping_file, mapping; append = true, writeheader = true)
 
 # Save the representative period data
-rp_data = DataFrame(;
-    year = default_values["year"],
-    rep_period = 1:n_rp,
-    num_timesteps = period_duration,
-    resolution = 1.0,
+first_clustered_profile =
+    filter(row -> row.profile_name == first(clustered_profiles.profile_name), clustered_profiles)
+rp_data = combine(
+    groupby(first_clustered_profile, [:year, :rep_period]),
+    :timestep => length => :num_timesteps,
 )
+rp_data.resolution .= 1.0
 open(output_rp_file, "w") do io
     println(io, join(["", "", "", ""], ","))
 end
 CSV.write(output_rp_file, rp_data; append = true, writeheader = true)
 
-# 
+# Write extra files for n_rp > 1
 if n_rp > 1
     TulipaClustering.split_into_periods!(min_max_reservoir_profiles_long_format; period_duration)
     # groupby profile_name, year, period aggregating the value column with mean
@@ -85,4 +87,14 @@ if n_rp > 1
         append = true,
         writeheader = true,
     )
+    first_profile = filter(
+        row -> row.profile_name == first(profiles_long_format.profile_name),
+        profiles_long_format,
+    )
+    timeframe_data =
+        combine(groupby(first_profile, [:year, :period]), :timestep => length => :num_timesteps)
+    open(output_timeframe_data_file, "w") do io
+        println(io, join(["", "", ""], ","))
+    end
+    CSV.write(output_timeframe_data_file, timeframe_data; append = true, writeheader = true)
 end

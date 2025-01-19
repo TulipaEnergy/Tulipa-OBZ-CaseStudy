@@ -42,6 +42,7 @@ function process_user_files(
     ending_name_in_files::String,
     default_values::Dict;
     map_to_rename_user_columns::Dict = Dict(),
+    number_of_rep_periods::Int = 1,
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
@@ -75,6 +76,14 @@ function process_user_files(
     end
 
     df = select(df, columns)
+
+    if number_of_rep_periods > 1
+        _df = copy(df)
+        for rp in 2:number_of_rep_periods
+            _df.rep_period .= rp
+            df = vcat(df, _df; cols = :union)
+        end
+    end
 
     open(output_file, "w") do io
         println(io, repeat(",", size(df, 2) - 1))
@@ -325,7 +334,12 @@ end
 
 function _process_prices(df, asset_type, duals_key)
     df_filtered = filter(row -> energy_problem.graph[row.asset].type == asset_type, df)
-    df_filtered[!, :price] = energy_problem.solution.duals[duals_key] * 1e3
+    df_filtered[!, :weight] = [
+        energy_problem.representative_periods[year][rep_period].weight for
+        (year, rep_period) in zip(df_filtered.year, df_filtered.rep_period)
+    ]
+    df_filtered[!, :price] =
+        energy_problem.solution.duals[duals_key] * 1e3 ./ df_filtered[!, :weight]
     df_filtered[!, :price] = df_filtered[!, :price] ./ (df_filtered[!, :timesteps_block] .|> length)
     df_prices = unroll_dataframe(df_filtered, [:asset, :year, :rep_period])
     select!(df_prices, [:asset, :year, :rep_period, :time, :price])
@@ -527,6 +541,7 @@ end
     years = [],
     rep_periods = [],
     plots_args = Dict(),
+    duration_curve = true,
 )
 
 Plots electricity prices over time for specified assets, years, and representative periods.
@@ -537,6 +552,7 @@ Plots electricity prices over time for specified assets, years, and representati
 - `years`: An optional array of years to filter the data. If empty, all years are included.
 - `rep_periods`: An optional array of representative periods to filter the data. If empty, all representative periods are included.
 - `plots_args`: Dictionary with extra arguments for the plot from Plots.jl.
+- `duration_curve`: A boolean indicating whether to plot the duration curve.
 
 # Returns
 - A plot object with electricity prices over time for the specified filters.
@@ -548,6 +564,7 @@ function plot_electricity_prices(
     years = [],
     rep_periods = [],
     plots_args = Dict(),
+    duration_curve = true,
 )
 
     # filtering the assets
@@ -571,21 +588,30 @@ function plot_electricity_prices(
         df = filter(row -> row.rep_period in rep_periods, df)
     end
 
-    # group by asset, year, and representative period
-    grouped_df = groupby(df, [:asset, :year, :rep_period])
+    # group by representative period
+    grouped_df = groupby(df, [:rep_period])
 
-    # for each group, plot the time vs the price in the same plot
-    p = plot(; plots_args...)
-    for group in grouped_df
-        sorted_group = sort(group, :price; rev = true)
+    # create a subplot for each group
+    n_subplots = length(grouped_df)
+    p = plot(; layout = grid(n_subplots, 1), plots_args...)
+
+    for (i, group) in enumerate(grouped_df)
+        if duration_curve
+            _group = sort(group, [:asset, :year, :price]; rev = true)
+        else
+            _group = group
+        end
+
         plot!(
+            p[i],
             group[!, :time],
-            sorted_group[!, :price];
-            label = group.asset[1],
-            xlabel = "Hour",
+            _group[!, :price];
+            group = (group[!, :asset], group[!, :year]),
+            xlabel = "Hour - rep. period $(group.rep_period[1])",
             ylabel = "Price [€/MWh]",
             linewidth = 2,
             dpi = 600,
+            legend = (i == 1),  # Show legend only for the first group
         )
     end
 
@@ -643,22 +669,86 @@ function plot_intra_storage_levels(
         df = filter(row -> row.rep_period in rep_periods, df)
     end
 
-    # group by asset, year, and representative period
-    grouped_df = groupby(df, [:asset, :year, :rep_period])
+    # group by representative period
+    grouped_df = groupby(df, [:rep_period])
 
-    # for each group, plot the time vs the price in the same plot
-    p = plot(; plots_args...)
-    for group in grouped_df
+    # create a subplot for each group
+    n_subplots = length(grouped_df)
+    p = plot(; layout = grid(n_subplots, 1), plots_args...)
+
+    for (i, group) in enumerate(grouped_df)
         plot!(
+            p[i],
             group[!, :time],
             group[!, :SoC];
-            label = group.asset[1],
-            xlabel = "Hour",
+            group = (group[!, :asset], group[!, :year]),
+            xlabel = "Hour - rep. period $(group.rep_period[1])",
             ylabel = "Storage level [p.u.]",
             linewidth = 3,
             dpi = 600,
+            legend = (i == 1),  # Show legend only for the first group
         )
     end
+
+    return p
+end
+
+"""
+    plot_inter_storage_levels(
+        inter_storage_level::DataFrame
+        energy_problem::EnergyProblem;
+        assets = [],
+        plots_args = Dict(),
+    ) -> Plot
+
+Plot the inter storage levels for the given assets.
+
+# Arguments
+- `inter_storage_level::DataFrame`: The DataFrame containing the inter storage level data.
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
+- `assets`: An array of assets to filter the data by. If empty, all assets are included.
+- `plots_args`: Dictionary with extra arguments for the plot from Plots.jl.
+
+# Returns
+- `Plot`: A plot object showing the storage levels over time for the specified filters.
+
+"""
+function plot_inter_storage_levels(
+    inter_storage_level::DataFrame,
+    energy_problem::EnergyProblem;
+    assets = [],
+    plots_args = Dict(),
+)
+
+    # filtering the assets
+    if isempty(assets)
+        df = inter_storage_level
+    else
+        df = filter(row -> row.asset in assets, inter_storage_level)
+    end
+
+    df[!, :SoC] = [
+        row.processed_value / (
+            if energy_problem.graph[row.asset].capacity_storage_energy == 0
+                1
+            else
+                energy_problem.graph[row.asset].capacity_storage_energy
+            end
+        ) for row in eachrow(df)
+    ]
+
+    p = plot(; plots_args...)
+
+    plot!(
+        df[!, :period],
+        df[!, :SoC];
+        group = df[!, :asset],
+        xlabel = "Period",
+        ylabel = "Storage level [p.u.]",
+        linewidth = 3,
+        dpi = 600,
+    )
+
     return p
 end
 

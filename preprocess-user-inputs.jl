@@ -62,6 +62,7 @@ process_user_files(
     "yearly-data.csv",
     default_values;
     map_to_rename_user_columns = Dict("name" => "asset"),
+    number_of_rep_periods = n_rp,
 )
 
 ## write graph flows data file

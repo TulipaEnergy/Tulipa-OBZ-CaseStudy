@@ -28,8 +28,8 @@ default_values = get_default_values(; default_year = 2050)
 
 # Define TulipaClustering data
 ## Data for clustering
-n_rp = 36               # number of representative periods
-period_duration = 24 # hours of the representative period
+n_rp = 1               # number of representative periods
+period_duration = 8760 # hours of the representative period
 method = :k_means
 distance = SqEuclidean()
 ## Data for weight fitting
@@ -67,6 +67,7 @@ energy_problem = run_scenario(
     write_lp_file = false,
     show_log = true,
     log_file = "log_file.log",
+    enable_names = false,
 )
 
 if energy_problem.termination_status == INFEASIBLE
@@ -91,6 +92,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 )
 
 # Save solution
+save_solution_to_file(output_dir, energy_problem)
 prices = get_prices_dataframe(energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
 balances = get_balance_per_country(energy_problem, df_assets_basic_data)
@@ -109,7 +111,9 @@ CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0)
 prices_plot = plot_electricity_prices(
     prices;
     assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
-    plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+    #rep_periods = [1, 2],
+    #plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+    duration_curve = true,
 )
 prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
 savefig(prices_plot, prices_plot_name)
@@ -117,38 +121,58 @@ savefig(prices_plot, prices_plot_name)
 batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
+    #rep_periods = [1, 2],
+    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
 batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
 savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
-hydro_storage_levels_plot = plot_intra_storage_levels(
-    intra_storage_levels;
-    assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
-    plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
-)
+if n_rp > 1
+    inter_storage_levels = CSV.read(joinpath(output_dir, "storage-level-inter-rp.csv"), DataFrame)
+    hydro_storage_levels_plot = plot_inter_storage_levels(
+        inter_storage_levels,
+        energy_problem;
+        assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
+        #plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
+    )
+else
+    hydro_storage_levels_plot = plot_intra_storage_levels(
+        intra_storage_levels;
+        assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
+        #rep_periods = [1, 2],
+        plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
+    )
+end
 hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-country = "OBZLL"
+country = "NL"
 balance_plot = plot_country_balance(
     balances;
     country = country,
     year = 2050,
     rep_period = 1,
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760, ylims = (-2, 2)),
+    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760, ylims = (-2, 2)),
 )
 balance_plot_name = joinpath(output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)
 
-# save individual flows solutions
-save_solution_to_file(output_dir, energy_problem)
+# read individual flows solutions
 flows = CSV.read(joinpath(output_dir, "flows.csv"), DataFrame)
 
 # filter rows by from and to columns for a specific values
 from_asset = "NL_E_Balance"
 to_asset = "NL_electrolyzer"
-flows_filtered = filter(row -> row.from == from_asset && row.to == to_asset, flows)
+year = 2050
+rep_period = 1
+flows_filtered = filter(
+    row ->
+        row.from == from_asset &&
+            row.to == to_asset &&
+            row.year == year &&
+            row.rep_period == rep_period,
+    flows,
+)
 
 # plot the filtered flows
 plot(
@@ -158,7 +182,7 @@ plot(
     xlabel = "Hour",
     ylabel = "[GWh]",
     linewidth = 2,
-    xlims = (8760 / 2, 8760 / 2 + 168),
+    #xlims = (8760 / 2, 8760 / 2 + 168),
     dpi = 600,
 )
 savefig(joinpath(output_dir, "flows-$from_asset-$to_asset.png"))
