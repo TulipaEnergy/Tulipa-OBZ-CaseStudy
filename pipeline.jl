@@ -13,7 +13,7 @@ using Distances
 using Statistics
 
 # Include the helper functions file
-include("functions.jl")
+include("aux-julia-files/functions.jl")
 
 # Read and transform user input files to Tulipa input files
 user_input_dir = "user-input-files"
@@ -41,10 +41,10 @@ learning_rate = 0.001
 adaptive_grad = false
 
 # Include file with the pre-processing of profiles using clustering
-include("preprocess-profiles.jl")
+include("aux-julia-files/preprocess-profiles.jl")
 
 # Include file with the pre-processing the rest of the files
-include("preprocess-user-inputs.jl")
+include("aux-julia-files/preprocess-user-inputs.jl")
 
 # set up the solver
 optimizer = HiGHS.Optimizer
@@ -67,7 +67,6 @@ energy_problem = run_scenario(
     write_lp_file = false,
     show_log = true,
     log_file = "log_file.log",
-    enable_names = false,
 )
 
 if energy_problem.termination_status == INFEASIBLE
