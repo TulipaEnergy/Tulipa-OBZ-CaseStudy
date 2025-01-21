@@ -13,7 +13,7 @@ using Distances
 using Statistics
 
 # Include the helper functions file
-include("aux-julia-files/functions.jl")
+include("utils/functions.jl")
 
 # Read and transform user input files to Tulipa input files
 user_input_dir = "user-input-files"
@@ -41,10 +41,10 @@ learning_rate = 0.001
 adaptive_grad = false
 
 # Include file with the pre-processing of profiles using clustering
-include("aux-julia-files/preprocess-profiles.jl")
+include("utils/preprocess-profiles.jl")
 
 # Include file with the pre-processing the rest of the files
-include("aux-julia-files/preprocess-user-inputs.jl")
+include("utils/preprocess-user-inputs.jl")
 
 # set up the solver
 optimizer = HiGHS.Optimizer
