@@ -606,7 +606,7 @@ function plot_electricity_prices(
             p[i],
             group[!, :time],
             _group[!, :price];
-            group = (group[!, :asset], group[!, :year]),
+            group = (_group[!, :asset], _group[!, :year]),
             xlabel = "Hour - rep. period $(group.rep_period[1])",
             ylabel = "Price [€/MWh]",
             linewidth = 2,
