@@ -1,4 +1,4 @@
-string,int,string,string
+,,,
 asset,commission_year,profile_type,profile_name
 FR_Hydro_Reservoir,2050,min_storage_level,FR_Hydro_Reservoir_Min_Storage_Level
 CH_Pump_Hydro_Open,2050,min_storage_level,CH_Pump_Hydro_Open_Min_Storage_Level

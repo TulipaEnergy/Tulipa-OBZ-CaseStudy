@@ -28,8 +28,8 @@ default_values = get_default_values(; default_year = 2050)
 
 # Define TulipaClustering data
 ## Data for clustering
-n_rp = 1               # number of representative periods
-period_duration = 8760 # hours of the representative period
+n_rp = 2              # number of representative periods
+period_duration = 168 # hours of the representative period
 method = :k_means
 distance = SqEuclidean()
 ## Data for weight fitting
@@ -64,14 +64,9 @@ read_csv_folder(
 )
 
 # Solve the problem and store the solution
-energy_problem = run_scenario(
-    connection;
-    optimizer = optimizer,
-    parameters = parameters,
-    write_lp_file = false,
-    show_log = true,
-    log_file = "log_file.log",
-)
+energy_problem = EnergyProblem(connection)
+create_model!(energy_problem; write_lp_file = false, enable_names = false)
+solve_model!(energy_problem, optimizer; parameters)
 
 if energy_problem.termination_status == INFEASIBLE
     compute_conflict!(energy_problem.model)
@@ -126,7 +121,7 @@ batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
     #rep_periods = [1, 2],
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
+    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
 batteries_storage_levels_plot_name =
     joinpath(@__DIR__, output_dir, "eu-case-batteries-storage-levels.png")
