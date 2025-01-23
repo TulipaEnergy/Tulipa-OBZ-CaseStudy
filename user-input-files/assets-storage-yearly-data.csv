@@ -3,13 +3,13 @@ name,year,partition,initial_units,initial_storage_units,initial_storage_level,st
 NL_Battery,2050,1,1,1,,0,0,5,FALSE
 BE_Battery,2050,1,1,1,,0,0,5,FALSE
 DE_Hydro_Reservoir,2050,24,1,1,129300,1297,0,5,TRUE
-DE_Battery,2050,2,1,1,,0,0,5,FALSE
+DE_Battery,2050,1,1,1,,0,0,5,FALSE
 DE_Pump_Hydro_Closed,2050,24,1,1,141100,7382,0,5,TRUE
 DE_Pump_Hydro_Open,2050,24,1,1,208350,1644,0,5,TRUE
 FR_Hydro_Reservoir,2050,24,1,1,5000000,8785,0,5,TRUE
 FR_Pump_Hydro_Closed,2050,24,1,1,5000,1950,0,5,TRUE
 FR_Pump_Hydro_Open,2050,24,1,1,45000,1850,0,5,TRUE
-UK_Battery,2050,2,1,1,,0,0,5,FALSE
+UK_Battery,2050,1,1,1,,0,0,5,FALSE
 UK_Pump_Hydro_Closed,2050,24,1,1,13200,2744,0,5,TRUE
 IE_Battery,2050,4,1,1,,0,0,5,FALSE
 IE_Pump_Hydro_Closed,2050,24,1,1,850,292,0,5,TRUE
@@ -66,7 +66,7 @@ RO_Hydro_Reservoir,2050,24,1,1,1212650,2579,0,5,TRUE
 RO_Battery,2050,4,1,1,,0,0,5,FALSE
 RO_Pump_Hydro_Open,2050,24,1,1,753200,839,0,5,TRUE
 CY_Battery,2050,4,1,1,,0,0,5,FALSE
-DK_Battery,2050,2,1,1,,0,0,5,FALSE
+DK_Battery,2050,1,1,1,,0,0,5,FALSE
 BG_Battery,2050,4,1,1,,0,0,5,FALSE
 FR_Battery,2050,2,1,1,,0,0,5,FALSE
 LV_Battery,2050,4,1,1,,0,0,5,FALSE

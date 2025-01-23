@@ -111,7 +111,8 @@ prices_plot = plot_electricity_prices(
     prices;
     assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
     #rep_periods = [1, 2],
-    #plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), ylims = (0, 100)),
+    plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
     duration_curve = true,
 )
 prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
@@ -121,7 +122,7 @@ batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
     #rep_periods = [1, 2],
-    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
+    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
 batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
 savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
@@ -151,7 +152,7 @@ balance_plot = plot_country_balance(
     country = country,
     year = 2050,
     rep_period = 1,
-    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760, ylims = (-2, 2)),
+    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760),
 )
 balance_plot_name = joinpath(output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)
@@ -160,8 +161,8 @@ savefig(balance_plot, balance_plot_name)
 flows = CSV.read(joinpath(output_dir, "flows.csv"), DataFrame)
 
 # filter rows by from and to columns for a specific values
-from_asset = "NL_E_Balance"
-to_asset = "NL_electrolyzer"
+from_asset = "OBZLL_E_Balance"
+to_asset = "NL_E_Balance"
 year = 2050
 rep_period = 1
 flows_filtered = filter(
@@ -181,7 +182,7 @@ plot(
     xlabel = "Hour",
     ylabel = "[GWh]",
     linewidth = 2,
-    #xlims = (8760 / 2, 8760 / 2 + 168),
+    xlims = (8760 / 2, 8760 / 2 + 168),
     dpi = 600,
 )
 savefig(joinpath(output_dir, "flows-$from_asset-$to_asset.png"))
