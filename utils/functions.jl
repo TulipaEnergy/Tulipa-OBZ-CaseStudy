@@ -54,7 +54,7 @@ function process_user_files(
     )
 
     for file in files
-        _df = CSV.read(joinpath(input_folder, file), DataFrame; header = 2)
+        _df = CSV.read(joinpath(@__DIR__, input_folder, file), DataFrame; header = 2)
         for (key, value) in map_to_rename_user_columns
             if key in names(_df)
                 _df = rename!(_df, key => value)

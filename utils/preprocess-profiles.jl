@@ -1,13 +1,14 @@
 # Define the path to the input files
-input_profiles_file = joinpath(user_input_dir, "profiles.csv")
-input_min_max_reservoir_profiles_file = joinpath(user_input_dir, "min-max-reservoir-levels.csv")
+input_profiles_file = joinpath(@__DIR__, "..", user_input_dir, "profiles.csv")
+input_min_max_reservoir_profiles_file =
+    joinpath(@__DIR__, "..", user_input_dir, "min-max-reservoir-levels.csv")
 
 # Define the path to the output files
-output_profiles_file = joinpath(tulipa_files_dir, "profiles-rep-periods.csv")
-output_mapping_file = joinpath(tulipa_files_dir, "rep-periods-mapping.csv")
-output_rp_file = joinpath(tulipa_files_dir, "rep-periods-data.csv")
-output_timeframe_profiles_file = joinpath(tulipa_files_dir, "profiles-timeframe.csv")
-output_timeframe_data_file = joinpath(tulipa_files_dir, "timeframe-data.csv")
+output_profiles_file = joinpath(@__DIR__, "..", tulipa_files_dir, "profiles-rep-periods.csv")
+output_mapping_file = joinpath(@__DIR__, "..", tulipa_files_dir, "rep-periods-mapping.csv")
+output_rp_file = joinpath(@__DIR__, "..", tulipa_files_dir, "rep-periods-data.csv")
+output_timeframe_profiles_file = joinpath(@__DIR__, "..", tulipa_files_dir, "profiles-timeframe.csv")
+output_timeframe_data_file = joinpath(@__DIR__, "..", tulipa_files_dir, "timeframe-data.csv")
 
 # Read the input profiles
 profiles_wide_format = CSV.read(input_profiles_file, DataFrame)
