@@ -20,8 +20,8 @@ user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
 
 # Clean old files and create the directory
-rm(tulipa_files_dir; force = true, recursive = true)
-mkdir(tulipa_files_dir)
+rm(joinpath(@__DIR__, tulipa_files_dir); force = true, recursive = true)
+mkdir(joinpath(@__DIR__, tulipa_files_dir))
 
 # Define default values
 default_values = get_default_values(; default_year = 2050)
@@ -57,7 +57,11 @@ parameters = Dict("OutputFlag" => 1, "MIPGap" => 0.0, "FeasibilityTol" => 1e-5)
 # Read Tulipa input files 
 input_dir = "tulipa-energy-model-files"
 connection = DBInterface.connect(DuckDB.DB)
-read_csv_folder(connection, input_dir; schemas = TulipaEnergyModel.schema_per_table_name)
+read_csv_folder(
+    connection,
+    joinpath(@__DIR__, input_dir);
+    schemas = TulipaEnergyModel.schema_per_table_name,
+)
 
 # Solve the problem and store the solution
 energy_problem = run_scenario(
@@ -77,33 +81,33 @@ end
 
 # Create "outputs" folder if it doesn't exist
 output_dir = "outputs"
-if !isdir(output_dir)
-    mkdir(output_dir)
+if !isdir(joinpath(@__DIR__, output_dir))
+    mkdir(joinpath(@__DIR__, output_dir))
 end
 
 # Create a file with the combined basic information of the assets
 assets_country_tecnology_file = "assets-country-tecnology-data.csv"
 df_assets_basic_data = create_one_file_for_assets_basic_info(
     assets_country_tecnology_file,
-    user_input_dir,
-    output_dir,
+    joinpath(@__DIR__, user_input_dir),
+    joinpath(@__DIR__, output_dir),
     default_values,
 )
 
 # Save solution
-save_solution_to_file(output_dir, energy_problem)
+save_solution_to_file(joinpath(@__DIR__, output_dir), energy_problem)
 prices = get_prices_dataframe(energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
 balances = get_balance_per_country(energy_problem, df_assets_basic_data)
 
 # Save the solutions to CSV files
-prices_file_name = joinpath(output_dir, "eu-case-prices.csv")
+prices_file_name = joinpath(@__DIR__, output_dir, "eu-case-prices.csv")
 CSV.write(prices_file_name, unstack(prices, :asset, :price))
 
-intra_storage_levels_file_name = joinpath(output_dir, "eu-case-intra-storage-levels.csv")
+intra_storage_levels_file_name = joinpath(@__DIR__, output_dir, "eu-case-intra-storage-levels.csv")
 CSV.write(intra_storage_levels_file_name, unstack(intra_storage_levels, :asset, :SoC))
 
-balance_file_name = joinpath(output_dir, "eu-case-balance-per-country.csv")
+balance_file_name = joinpath(@__DIR__, output_dir, "eu-case-balance-per-country.csv")
 CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0))
 
 # Plot the results
@@ -115,7 +119,7 @@ prices_plot = plot_electricity_prices(
     plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
     duration_curve = true,
 )
-prices_plot_name = joinpath(output_dir, "eu-case-price-duration-curve.png")
+prices_plot_name = joinpath(@__DIR__, output_dir, "eu-case-price-duration-curve.png")
 savefig(prices_plot, prices_plot_name)
 
 batteries_storage_levels_plot = plot_intra_storage_levels(
@@ -124,11 +128,13 @@ batteries_storage_levels_plot = plot_intra_storage_levels(
     #rep_periods = [1, 2],
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
 )
-batteries_storage_levels_plot_name = joinpath(output_dir, "eu-case-batteries-storage-levels.png")
+batteries_storage_levels_plot_name =
+    joinpath(@__DIR__, output_dir, "eu-case-batteries-storage-levels.png")
 savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 if n_rp > 1
-    inter_storage_levels = CSV.read(joinpath(output_dir, "storage-level-inter-rp.csv"), DataFrame)
+    inter_storage_levels =
+        CSV.read(joinpath(@__DIR__, output_dir, "storage-level-inter-rp.csv"), DataFrame)
     hydro_storage_levels_plot = plot_inter_storage_levels(
         inter_storage_levels,
         energy_problem;
@@ -143,7 +149,7 @@ else
         plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
     )
 end
-hydro_storage_levels_plot_name = joinpath(output_dir, "eu-case-hydro-storage-levels.png")
+hydro_storage_levels_plot_name = joinpath(@__DIR__, output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
 country = "NL"
@@ -154,11 +160,11 @@ balance_plot = plot_country_balance(
     rep_period = 1,
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760),
 )
-balance_plot_name = joinpath(output_dir, "eu-case-balance-$country.png")
+balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)
 
 # read individual flows solutions
-flows = CSV.read(joinpath(output_dir, "flows.csv"), DataFrame)
+flows = CSV.read(joinpath(@__DIR__, output_dir, "flows.csv"), DataFrame)
 
 # filter rows by from and to columns for a specific values
 from_asset = "OBZLL_E_Balance"
@@ -185,4 +191,4 @@ plot(
     xlims = (8760 / 2, 8760 / 2 + 168),
     dpi = 600,
 )
-savefig(joinpath(output_dir, "flows-$from_asset-$to_asset.png"))
+savefig(joinpath(@__DIR__, output_dir, "flows-$from_asset-$to_asset.png"))
