@@ -161,5 +161,6 @@ process_flows_rep_period_partition_file(
     joinpath(@__DIR__, "..", tulipa_files_dir, "flow.csv"),
     joinpath(@__DIR__, "..", tulipa_files_dir, tulipa_file),
     TulipaEnergyModel.schemas.flows.rep_periods_partition,
-    default_values,
+    default_values;
+    number_of_rep_periods = n_rp,
 )
