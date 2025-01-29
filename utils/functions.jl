@@ -124,7 +124,8 @@ function process_flows_rep_period_partition_file(
     flows_data_file::String,
     output_file::String,
     schema::Union{NTuple,OrderedDict},
-    default_values::Dict,
+    default_values::Dict;
+    number_of_rep_periods::Int = 1,
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
@@ -153,6 +154,14 @@ function process_flows_rep_period_partition_file(
     end
 
     df = select(df, columns)
+
+    if number_of_rep_periods > 1
+        _df = copy(df)
+        for rp in 2:number_of_rep_periods
+            _df.rep_period .= rp
+            df = vcat(df, _df; cols = :union)
+        end
+    end
 
     CSV.write(output_file, df; append = true, writeheader = true)
     return df
