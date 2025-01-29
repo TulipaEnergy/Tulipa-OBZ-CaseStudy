@@ -85,9 +85,6 @@ function process_user_files(
         end
     end
 
-    open(output_file, "w") do io
-        println(io, repeat(",", size(df, 2) - 1))
-    end
     CSV.write(output_file, df; append = true, writeheader = true)
     return df
 end
@@ -132,8 +129,8 @@ function process_flows_rep_period_partition_file(
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
 
-    df_assets_partition = CSV.read(assets_partition_file, DataFrame; header = 2)
-    df_flows = CSV.read(flows_data_file, DataFrame; header = 2)
+    df_assets_partition = CSV.read(assets_partition_file, DataFrame)
+    df_flows = CSV.read(flows_data_file, DataFrame)
 
     df = vcat(df, df_flows; cols = :union)
 
@@ -157,9 +154,6 @@ function process_flows_rep_period_partition_file(
 
     df = select(df, columns)
 
-    open(output_file, "w") do io
-        println(io, repeat(",", size(df, 2) - 1))
-    end
     CSV.write(output_file, df; append = true, writeheader = true)
     return df
 end
@@ -210,14 +204,16 @@ function create_one_file_for_assets_basic_info(
     return df
 end
 
-function get_default_values(; default_year::Int = 2030)
+function get_default_values(; default_year::Int = 2050)
     return Dict(
         "active" => true,
         "capacity" => 0.0,
         "capacity_storage_energy" => 0.0,
         "carrier" => "electricity",
+        "milestone_year" => default_year,
         "commission_year" => default_year,
         "consumer_balance_sense" => missing,
+        "decommissionable" => false,
         "discount_rate" => 0.0,
         "economic_lifetime" => 1.0,
         "efficiency" => 1.0,
@@ -269,6 +265,7 @@ function get_default_values(; default_year::Int = 2030)
         "technology" => missing,
         "lat" => 0,
         "lon" => 0,
+        "length" => 8760,
     )
 end
 
