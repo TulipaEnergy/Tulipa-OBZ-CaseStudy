@@ -1,6 +1,10 @@
 # Tulipa OBZ
 
-# How to add a new asset
+## Updating the repo
+
+If you have an error after updating your repository, consider, delete the Manifest.TOML in your project folder and instantiate the julia enviroment again to get the latest updated packages.
+
+## How to add a new asset
 
 1. Go to the folder `user-input-files` and then add the asset to the correspondent `asset-XXX-basic-data.csv` and the `asset-XXX-year-data.csv`
 2. (optional) Go to the `profiles.csv` and add the profile for the asset
