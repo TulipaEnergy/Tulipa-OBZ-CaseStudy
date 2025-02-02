@@ -137,3 +137,6 @@ CSV.write("user-input-files/max-reservoir-levels-profiles.csv", _df)
 # change partition on the files
 DuckDB.query(connection, "UPDATE assets_rep_periods_partitions SET partition = 1")
 DuckDB.query(connection, "UPDATE flows_rep_periods_partitions SET partition = 1")
+
+# change representative period's mber of timesteps
+DuckDB.query(connection, "UPDATE rep_periods_data SET num_timesteps = 24")
