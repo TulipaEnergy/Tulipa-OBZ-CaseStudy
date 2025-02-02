@@ -318,20 +318,22 @@ Generate a DataFrame containing prices for hubs and consumers over time.
 
 # Arguments
 - `connection`: DB connection to tables in the model.
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
 
 # Returns
 - `DataFrame`: A DataFrame with columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`, representing the electricity prices for hubs over time.
 
 """
-function get_prices_dataframe(connection)
-    df_hubs = _process_prices(connection, "cons_balance_hub", :dual_balance_hub)
-    df_consumer = _process_prices(connection, "cons_balance_consumer", :dual_balance_consumer)
+function get_prices_dataframe(connection, energy_problem::EnergyProblem)
+    df_hubs = _process_prices(connection, "cons_balance_hub", :dual_balance_hub, energy_problem)
+    df_consumer =
+        _process_prices(connection, "cons_balance_consumer", :dual_balance_consumer, energy_problem)
     df_prices = vcat(df_hubs, df_consumer; cols = :union)
     return df_prices
 end
 
-function _process_prices(connection, table_name, duals_key)
-    # Get the representative periods weight
+function _process_prices(connection, table_name, duals_key, energy_problem)
+    # Get the representative periods resolution
     _df = DuckDB.query(
         connection,
         "SELECT cons.*,
@@ -342,11 +344,18 @@ function _process_prices(connection, table_name, duals_key)
             AND cons.rep_period = rp.rep_period",
     ) |> DataFrame
 
+    # Get the weight for each representative period
+    _df[!, :weight] = [
+        energy_problem.representative_periods[year][rep_period].weight for
+        (year, rep_period) in zip(_df.year, _df.rep_period)
+    ]
+
     # Get the duration of each timestep block
     _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
 
     # Calculate the price
-    _df[!, :price] = (_df[!, duals_key] * 1e3 ./ _df[!, :resolution]) ./ _df[!, :duration]
+    _df[!, :price] =
+        (_df[!, duals_key] * 1e3 ./ _df[!, :resolution]) ./ (_df[!, :duration]) ./ _df[!, :weight]
 
     # Unroll the DataFrame to have hourly results
     _df = unroll_dataframe(_df, [:asset, :year, :rep_period])
