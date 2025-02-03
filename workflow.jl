@@ -20,6 +20,7 @@ user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
 
 # Clean old files and create the directory
+chmod(joinpath(@__DIR__, tulipa_files_dir), 0o777) # Change permission: all users have read, write, and execute permissions.
 rm(joinpath(@__DIR__, tulipa_files_dir); force = true, recursive = true)
 mkdir(joinpath(@__DIR__, tulipa_files_dir))
 
