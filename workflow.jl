@@ -69,9 +69,10 @@ energy_problem = run_scenario(
     connection;
     optimizer = optimizer,
     parameters = parameters,
-    write_lp_file = false,
+    #write_lp_file = true,
     show_log = true,
     log_file = "log_file.log",
+    #enable_names = false,
 )
 
 if energy_problem.termination_status == INFEASIBLE
@@ -96,10 +97,11 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 )
 
 # Save solution
-save_solution_to_file(joinpath(@__DIR__, output_dir), energy_problem)
-prices = get_prices_dataframe(energy_problem)
-intra_storage_levels = get_intra_storage_levels_dataframe(energy_problem)
-balances = get_balance_per_country(energy_problem, df_assets_basic_data)
+save_solution!(energy_problem)
+export_solution_to_csv_files(joinpath(@__DIR__, output_dir), energy_problem)
+prices = get_prices_dataframe(connection, energy_problem)
+intra_storage_levels = get_intra_storage_levels_dataframe(connection)
+balances = get_balance_per_country(connection, energy_problem, df_assets_basic_data)
 
 # Save the solutions to CSV files
 prices_file_name = joinpath(@__DIR__, output_dir, "eu-case-prices.csv")
@@ -134,10 +136,8 @@ batteries_storage_levels_plot_name =
 savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 if n_rp > 1
-    inter_storage_levels =
-        CSV.read(joinpath(@__DIR__, output_dir, "storage-level-inter-rp.csv"), DataFrame)
     hydro_storage_levels_plot = plot_inter_storage_levels(
-        inter_storage_levels,
+        connection,
         energy_problem;
         assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
         #plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
@@ -164,32 +164,17 @@ balance_plot = plot_country_balance(
 balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$country.png")
 savefig(balance_plot, balance_plot_name)
 
-# read individual flows solutions
-flows = CSV.read(joinpath(@__DIR__, output_dir, "flows.csv"), DataFrame)
-
-# filter rows by from and to columns for a specific values
 from_asset = "OBZLL_E_Balance"
 to_asset = "NL_E_Balance"
 year = 2050
 rep_period = 1
-flows_filtered = filter(
-    row ->
-        row.from == from_asset &&
-            row.to == to_asset &&
-            row.year == year &&
-            row.rep_period == rep_period,
-    flows,
+flow_plot = plot_flow(
+    connection,
+    from_asset,
+    to_asset,
+    year,
+    rep_period;
+    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760),
 )
-
-# plot the filtered flows
-plot(
-    flows_filtered[!, :timestep],
-    flows_filtered[!, :value] / 1000;
-    label = string(from_asset, " -> ", to_asset),
-    xlabel = "Hour",
-    ylabel = "[GWh]",
-    linewidth = 2,
-    xlims = (8760 / 2, 8760 / 2 + 168),
-    dpi = 600,
-)
-savefig(joinpath(@__DIR__, output_dir, "flows-$from_asset-$to_asset.png"))
+flow_plot_name = joinpath(@__DIR__, output_dir, "flows-$from_asset-$to_asset.png")
+savefig(flow_plot, flow_plot_name)

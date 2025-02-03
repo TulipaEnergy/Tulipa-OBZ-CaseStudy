@@ -85,9 +85,6 @@ function process_user_files(
         end
     end
 
-    open(output_file, "w") do io
-        println(io, repeat(",", size(df, 2) - 1))
-    end
     CSV.write(output_file, df; append = true, writeheader = true)
     return df
 end
@@ -127,13 +124,14 @@ function process_flows_rep_period_partition_file(
     flows_data_file::String,
     output_file::String,
     schema::Union{NTuple,OrderedDict},
-    default_values::Dict,
+    default_values::Dict;
+    number_of_rep_periods::Int = 1,
 )
     columns = [name for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
 
-    df_assets_partition = CSV.read(assets_partition_file, DataFrame; header = 2)
-    df_flows = CSV.read(flows_data_file, DataFrame; header = 2)
+    df_assets_partition = CSV.read(assets_partition_file, DataFrame)
+    df_flows = CSV.read(flows_data_file, DataFrame)
 
     df = vcat(df, df_flows; cols = :union)
 
@@ -157,9 +155,14 @@ function process_flows_rep_period_partition_file(
 
     df = select(df, columns)
 
-    open(output_file, "w") do io
-        println(io, repeat(",", size(df, 2) - 1))
+    if number_of_rep_periods > 1
+        _df = copy(df)
+        for rp in 2:number_of_rep_periods
+            _df.rep_period .= rp
+            df = vcat(df, _df; cols = :union)
+        end
     end
+
     CSV.write(output_file, df; append = true, writeheader = true)
     return df
 end
@@ -210,14 +213,37 @@ function create_one_file_for_assets_basic_info(
     return df
 end
 
-function get_default_values(; default_year::Int = 2030)
+function create_timeframe_partition_file(
+    seasonal_assets::DataFrame,
+    output_file::String,
+    schema::Union{NTuple,OrderedDict},
+    default_values::Dict,
+)
+    columns = [name for (name, _) in schema]
+    df = DataFrame(Dict(name => Vector{Any}() for name in columns))
+    df = vcat(df, seasonal_assets; cols = :union)
+    for (key, value) in default_values
+        if key in names(df)
+            df[!, key] = coalesce.(df[!, key], value)
+        end
+    end
+
+    df = select(df, columns)
+    CSV.write(output_file, df; append = true, writeheader = true)
+
+    return df
+end
+
+function get_default_values(; default_year::Int = 2050)
     return Dict(
         "active" => true,
         "capacity" => 0.0,
         "capacity_storage_energy" => 0.0,
         "carrier" => "electricity",
+        "milestone_year" => default_year,
         "commission_year" => default_year,
         "consumer_balance_sense" => missing,
+        "decommissionable" => false,
         "discount_rate" => 0.0,
         "economic_lifetime" => 1.0,
         "efficiency" => 1.0,
@@ -269,6 +295,7 @@ function get_default_values(; default_year::Int = 2030)
         "technology" => missing,
         "lat" => 0,
         "lon" => 0,
+        "length" => 8760,
     )
 end
 
@@ -288,10 +315,7 @@ Unrolls a DataFrame by expanding rows based on the duration of each timestep blo
 
 """
 function unroll_dataframe(df::DataFrame, cols_to_groupby::Vector{Symbol})
-    unit_ranges = df[!, :timesteps_block]
-    df[!, :time] = [range[1] for range in unit_ranges]
-    df[!, :duration] = df[!, :timesteps_block] .|> length
-
+    df[!, :time] = df[!, :time_block_start]
     _df = DataFrame(Dict(col => Vector{eltype(df[!, col])}() for col in names(df)))
     grouped_df = groupby(df, cols_to_groupby)
 
@@ -309,69 +333,90 @@ function unroll_dataframe(df::DataFrame, cols_to_groupby::Vector{Symbol})
 end
 
 """
-    get_prices_dataframe(energy_problem::EnergyProblem)
+    get_prices_dataframe(connection)
 
-Generate a DataFrame containing prices for hubs and consumers over time from the given energy problem.
+Generate a DataFrame containing prices for hubs and consumers over time.
 
 # Arguments
-- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the necessary data and solution.
+- `connection`: DB connection to tables in the model.
+- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
 
 # Returns
 - `DataFrame`: A DataFrame with columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`, representing the electricity prices for hubs over time.
 
-# Description
-This function processes the `energy_problem` to extract and compute prices for hubs and consumers. It filters the relevant data, calculates the duration of each timestep block, and constructs a new DataFrame with the time and price information for each hub and consumer. The resulting DataFrame is grouped by `:asset`, `:year`, and `:rep_period`, and the time steps are expanded accordingly.
-
 """
-function get_prices_dataframe(energy_problem::EnergyProblem)
-    df = energy_problem.dataframes[:highest_in_out]
-    df_hubs_prices = _process_prices(df, "hub", :hub_balance)
-    df_consumer_prices = _process_prices(df, "consumer", :consumer_balance)
-    df_prices = vcat(df_hubs_prices, df_consumer_prices; cols = :union)
-
+function get_prices_dataframe(connection, energy_problem::EnergyProblem)
+    df_hubs = _process_prices(connection, "cons_balance_hub", :dual_balance_hub, energy_problem)
+    df_consumer =
+        _process_prices(connection, "cons_balance_consumer", :dual_balance_consumer, energy_problem)
+    df_prices = vcat(df_hubs, df_consumer; cols = :union)
     return df_prices
 end
 
-function _process_prices(df, asset_type, duals_key)
-    df_filtered = filter(row -> energy_problem.graph[row.asset].type == asset_type, df)
-    df_filtered[!, :weight] = [
+function _process_prices(connection, table_name, duals_key, energy_problem)
+    # Get the representative periods resolution
+    _df = DuckDB.query(
+        connection,
+        "SELECT cons.*,
+                rp.resolution
+            FROM $table_name AS cons
+        LEFT JOIN rep_periods_data AS rp
+            ON cons.year = rp.year
+            AND cons.rep_period = rp.rep_period",
+    ) |> DataFrame
+
+    # Get the weight for each representative period
+    _df[!, :weight] = [
         energy_problem.representative_periods[year][rep_period].weight for
-        (year, rep_period) in zip(df_filtered.year, df_filtered.rep_period)
+        (year, rep_period) in zip(_df.year, _df.rep_period)
     ]
-    df_filtered[!, :price] =
-        energy_problem.solution.duals[duals_key] * 1e3 ./ df_filtered[!, :weight]
-    df_filtered[!, :price] = df_filtered[!, :price] ./ (df_filtered[!, :timesteps_block] .|> length)
-    df_prices = unroll_dataframe(df_filtered, [:asset, :year, :rep_period])
-    select!(df_prices, [:asset, :year, :rep_period, :time, :price])
-    return df_prices
+
+    # Get the duration of each timestep block
+    _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
+
+    # Calculate the price
+    _df[!, :price] =
+        (_df[!, duals_key] * 1e3 ./ _df[!, :resolution]) ./ (_df[!, :duration]) ./ _df[!, :weight]
+
+    # Unroll the DataFrame to have hourly results
+    _df = unroll_dataframe(_df, [:asset, :year, :rep_period])
+    select!(_df, [:asset, :year, :rep_period, :time, :price])
+    return _df
 end
 
 """
-    get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
+    get_intra_storage_levels_dataframe(connection)
 
 Generate a DataFrame containing the intra-storage levels for a given energy problem.
 
 # Arguments
-- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
+- `connection`: DB connection to tables in the model.
 
 # Returns
 - A `DataFrame` with the intra-storage levels for the specified energy problem.
 """
-function get_intra_storage_levels_dataframe(energy_problem::EnergyProblem)
-    df = energy_problem.dataframes[:lowest_storage_level_intra_rp]
-    df[!, :SoC] = [
-        row.solution / (
-            if energy_problem.graph[row.asset].capacity_storage_energy == 0
-                1
-            else
-                energy_problem.graph[row.asset].capacity_storage_energy
-            end
-        ) for row in eachrow(df)
-    ]
-
-    df_intra = unroll_dataframe(df, [:asset, :year, :rep_period])
-    select!(df_intra, [:asset, :year, :rep_period, :time, :SoC])
-    return df_intra
+function get_intra_storage_levels_dataframe(connection)
+    # Get the storage capacity
+    _df = DuckDB.query(
+        connection,
+        "SELECT var.*,
+                asset.capacity_storage_energy
+            FROM var_storage_level_rep_period AS var
+        LEFT JOIN asset AS asset
+            ON var.asset = asset.asset",
+    ) |> DataFrame
+    # Calculate the state of charge
+    _df[!, :SoC] = [row.solution / (
+        if row.capacity_storage_energy == 0
+            1
+        else
+            row.capacity_storage_energy
+        end
+    ) for row in eachrow(_df)]
+    _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
+    _df = unroll_dataframe(_df, [:asset, :year, :rep_period])
+    select!(_df, [:asset, :year, :rep_period, :time, :SoC])
+    return _df
 end
 
 """
@@ -380,6 +425,7 @@ end
 Calculate the energy balance per country based on the given energy problem and assets data.
 
 # Arguments
+- `connection`: DB connection to tables in the model.
 - `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
 - `assets::DataFrame`: A DataFrame containing asset information.
 
@@ -405,16 +451,16 @@ This function performs the following steps:
 9. Concatenates all the calculated DataFrames to form the final balance DataFrame.
 
 """
-function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFrame)
+function get_balance_per_country(connection, energy_problem::EnergyProblem, assets::DataFrame)
     # Get the flows dataframe to filter and create new columns
-    df = energy_problem.dataframes[:flows]
+    df = TulipaIO.get_table(connection, "var_flow")
     df = filter(
         row ->
             energy_problem.graph[row.from].type == "hub" ||
                 energy_problem.graph[row.to].type == "hub",
         df,
     )
-
+    df[!, :duration] = df[!, :time_block_end] .- df[!, :time_block_start] .+ 1
     df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
     df = select(df, [:from, :to, :year, :rep_period, :time, :solution])
 
@@ -719,6 +765,17 @@ function plot_inter_storage_levels(
     assets = [],
     plots_args = Dict(),
 )
+    _df = TulipaIO.get_table(connection, "var_storage_level_over_clustered_year")
+
+    # filtering the flows
+    _df = filter(
+        row ->
+            row.from == from_asset &&
+                row.to == to_asset &&
+                row.year == year &&
+                row.rep_period == rep_period,
+        _df,
+    )
 
     # filtering the assets
     if isempty(assets)
@@ -799,6 +856,53 @@ function plot_country_balance(
     # add a line for the demand
     p = plot!(; plots_args...)
     plot!(demand / 1000; label = "Demand", color = :black, linewidth = 3, linestyle = :dash)
+
+    return p
+end
+
+function plot_flow(
+    connection,
+    from_asset = [],
+    to_asset = [],
+    year = [],
+    rep_period = [];
+    plots_args = Dict(),
+)
+    _df = TulipaIO.get_table(connection, "var_flow")
+
+    # filtering the flows
+    _df = filter(
+        row ->
+            row.from == from_asset &&
+                row.to == to_asset &&
+                row.year == year &&
+                row.rep_period == rep_period,
+        _df,
+    )
+
+    _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
+    _df = unroll_dataframe(_df, [:from, :to, :year, :rep_period])
+
+    # group by representative period
+    grouped_df = groupby(_df, [:rep_period])
+
+    # create a subplot for each group
+    n_subplots = length(grouped_df)
+    p = plot(; layout = grid(n_subplots, 1), plots_args...)
+
+    for (i, group) in enumerate(grouped_df)
+        plot!(
+            p[i],
+            group[!, :time],
+            group[!, :solution] / 1000;
+            group = (group[!, :from], group[!, :to]),
+            label = string(from_asset, " -> ", to_asset),
+            xlabel = "Hour",
+            ylabel = "[GWh]",
+            dpi = 600,
+            legend = (i == 1),  # Show legend only for the first group
+        )
+    end
 
     return p
 end
