@@ -2,7 +2,7 @@ string,string,MW,string,string,degrees,degrees
 name,type,capacity,country,technology,lat,lon
 NL_E_ENS,producer,33775.8785,NL,ENS,52.1326,5.2913
 NL_Wind_Onshore,producer,20000,NL,Wind_Onshore,52.1326,5.2913
-NL_Wind_Offshore,producer,49653,NL,Wind_Offshore,52.1326,5.2913
+NL_Wind_Offshore,producer,25653,NL,Wind_Offshore,52.1326,5.2913
 NL_Solar,producer,99984,NL,Solar,52.1326,5.2913
 NL_Gas,producer,15250,NL,Gas,52.1326,5.2913
 NL_OCGT,producer,0,NL,Gas,52.1326,5.2913
@@ -15,7 +15,7 @@ BE_Gas,producer,8868,BE,Gas,50.8503,4.3517
 BE_OCGT,producer,244,BE,Gas,50.8503,4.3517
 DE_E_ENS,producer,119083.5828,DE,ENS,51.1657,10.4515
 DE_Wind_Onshore,producer,191500,DE,Wind_Onshore,51.1657,10.4515
-DE_Wind_Offshore,producer,70585,DE,Wind_Offshore,51.1657,10.4515
+DE_Wind_Offshore,producer,68585,DE,Wind_Offshore,51.1657,10.4515
 DE_Solar,producer,456389,DE,Solar,51.1657,10.4515
 DE_Hydro,producer,4753,DE,Hydro,51.1657,10.4515
 DE_Coal,producer,0,DE,Coal,51.1657,10.4515
@@ -31,7 +31,7 @@ FR_Gas,producer,10839,FR,Gas,46.6034,1.8883
 FR_OCGT,producer,0,FR,Gas,46.6034,1.8883
 DK_E_ENS,producer,5894.6533,DK,ENS,56.2639,9.5018
 DK_Wind_Onshore,producer,11393,DK,Wind_Onshore,56.2639,9.5018
-DK_Wind_Offshore,producer,44191,DK,Wind_Offshore,56.2639,9.5018
+DK_Wind_Offshore,producer,40191,DK,Wind_Offshore,56.2639,9.5018
 DK_Solar,producer,24446,DK,Solar,56.2639,9.5018
 DK_Gas,producer,10,DK,Gas,56.2639,9.5018
 DK_OCGT,producer,612,DK,Gas,56.2639,9.5018
@@ -194,4 +194,12 @@ CY_Wind_Onshore,producer,400,CY,Wind_Onshore,35.1264,33.4299
 CY_Solar,producer,2273,CY,Solar,35.1264,33.4299
 CY_Gas,producer,524,CY,Gas,35.1264,33.4299
 OBZLL_Wind_Offshore,producer,2000,OBZLL,Wind_Offshore,53.1705,3.5288
+OBZNL1_Wind_Offshore,producer,4000,OBZNL1,Wind_Offshore,53.170,3.528
+OBZNL2_Wind_Offshore,producer,4000,OBZNL2,Wind_Offshore,53.170,3.528
+OBZNL3_Wind_Offshore,producer,4000,OBZNL3,Wind_Offshore,53.170,3.528
+OBZNL4_Wind_Offshore,producer,4000,OBZNL4,Wind_Offshore,53.170,3.528
+OBZNL5_Wind_Offshore,producer,4000,OBZNL5,Wind_Offshore,53.170,3.528
+OBZNL6_Wind_Offshore,producer,4000,OBZNL6,Wind_Offshore,53.170,3.528
+OBZDE1_Wind_Offshore,producer,2000,OBZDE1,Wind_Offshore,51.165,10.451
+OBZDK1_Wind_Offshore,producer,4000,OBZDK1,Wind_Offshore,56.263,9.501
 EU_SMR_CCS,producer,999999999,EU,SMR_CCS,45.3,-3.6

@@ -31,6 +31,14 @@ BG_E_Demand,consumer,BG,Demand,42.7339,25.4858
 RO_E_Demand,consumer,RO,Demand,45.9432,24.9668
 CY_E_Demand,consumer,CY,Demand,35.1264,33.4299
 OBZLL_E_Demand,consumer,OBZLL,Demand,53.1705,3.5288
+OBZNL1_E_Demand,consumer,OBZNL1,Demand,53.170,3.528
+OBZNL2_E_Demand,consumer,OBZNL2,Demand,53.170,3.528
+OBZNL3_E_Demand,consumer,OBZNL3,Demand,53.170,3.528
+OBZNL4_E_Demand,consumer,OBZNL4,Demand,53.170,3.528
+OBZNL5_E_Demand,consumer,OBZNL5,Demand,53.170,3.528
+OBZNL6_E_Demand,consumer,OBZNL6,Demand,53.170,3.528
+OBZDE1_E_Demand,consumer,OBZDE1,Demand,51.165,10.451
+OBZDK1_E_Demand,consumer,OBZDK1,Demand,56.263,9.501
 NL_H_Demand,consumer,NL,Demand,52.1326,5.2913
 BE_H_Demand,consumer,BE,Demand,50.8503,4.3517
 DE_H_Demand,consumer,DE,Demand,51.1657,10.4515
@@ -62,3 +70,11 @@ BG_H_Demand,consumer,BG,Demand,42.7339,25.4858
 RO_H_Demand,consumer,RO,Demand,45.9432,24.9668
 CY_H_Demand,consumer,CY,Demand,35.1264,33.4299
 OBZLL_H_Demand,consumer,OBZLL,Demand,53.1705,3.5288
+OBZNL1_H_Demand,consumer,OBZNL1,Demand,53.170,3.528
+OBZNL2_H_Demand,consumer,OBZNL2,Demand,53.170,3.528
+OBZNL3_H_Demand,consumer,OBZNL3,Demand,53.170,3.528
+OBZNL4_H_Demand,consumer,OBZNL4,Demand,53.170,3.528
+OBZNL5_H_Demand,consumer,OBZNL5,Demand,53.170,3.528
+OBZNL6_H_Demand,consumer,OBZNL6,Demand,53.170,3.528
+OBZDE1_H_Demand,consumer,OBZDE1,Demand,51.165,10.451
+OBZDK1_H_Demand,consumer,OBZDK1,Demand,56.263,9.501

@@ -61,3 +61,11 @@ RO_E_Balance,HU_E_Balance,electricity,TRUE,1000
 CY_E_Balance,GR_E_Balance,electricity,TRUE,1000
 OBZLL_E_Balance,NL_E_Balance,electricity,TRUE,1000
 OBZLL_E_Balance,UK_E_Balance,electricity,TRUE,1000
+OBZNL1_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZNL2_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZNL3_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZNL4_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZNL5_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZNL6_E_Balance,NL_E_Balance,electricity,TRUE,1000
+OBZDE1_E_Balance,DE_E_Balance,electricity,TRUE,1000
+OBZDK1_E_Balance,DK_E_Balance,electricity,TRUE,1000
