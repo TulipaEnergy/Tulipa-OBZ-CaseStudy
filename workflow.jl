@@ -98,7 +98,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 # Save solution
 save_solution!(energy_problem)
 export_solution_to_csv_files(joinpath(@__DIR__, output_dir), energy_problem)
-prices = get_prices_dataframe(connection)
+prices = get_prices_dataframe(connection, energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(connection)
 balances = get_balance_per_country(connection, energy_problem, df_assets_basic_data)
 
@@ -135,10 +135,8 @@ batteries_storage_levels_plot_name =
 savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 if n_rp > 1
-    inter_storage_levels =
-        CSV.read(joinpath(@__DIR__, output_dir, "storage-level-inter-rp.csv"), DataFrame)
     hydro_storage_levels_plot = plot_inter_storage_levels(
-        inter_storage_levels,
+        connection,
         energy_problem;
         assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
         #plots_args = (xticks = 0:730:8760, ylims = (0, 1)),

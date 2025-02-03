@@ -53,6 +53,18 @@ if n_rp == 1
     CSV.write(output_file, assets; append = false, writeheader = true)
 end
 
+## if n_rp > 1 (seasonal optimization) create assets-timeframe-partitions.csv
+if n_rp > 1
+    tulipa_file = "assets-timeframe-partitions.csv"
+    seasonal_assets = assets[assets.is_seasonal.==true, :]
+    create_timeframe_partition_file(
+        seasonal_assets,
+        joinpath(@__DIR__, "..", tulipa_files_dir, tulipa_file),
+        TulipaEnergyModel.schemas.assets.timeframe_partition,
+        default_values,
+    )
+end
+
 ## write assets-profiles data file
 tulipa_file = "assets-profiles.csv"
 process_user_files(

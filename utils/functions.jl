@@ -213,6 +213,27 @@ function create_one_file_for_assets_basic_info(
     return df
 end
 
+function create_timeframe_partition_file(
+    seasonal_assets::DataFrame,
+    output_file::String,
+    schema::Union{NTuple,OrderedDict},
+    default_values::Dict,
+)
+    columns = [name for (name, _) in schema]
+    df = DataFrame(Dict(name => Vector{Any}() for name in columns))
+    df = vcat(df, seasonal_assets; cols = :union)
+    for (key, value) in default_values
+        if key in names(df)
+            df[!, key] = coalesce.(df[!, key], value)
+        end
+    end
+
+    df = select(df, columns)
+    CSV.write(output_file, df; append = true, writeheader = true)
+
+    return df
+end
+
 function get_default_values(; default_year::Int = 2050)
     return Dict(
         "active" => true,
@@ -744,6 +765,17 @@ function plot_inter_storage_levels(
     assets = [],
     plots_args = Dict(),
 )
+    _df = TulipaIO.get_table(connection, "var_storage_level_over_clustered_year")
+
+    # filtering the flows
+    _df = filter(
+        row ->
+            row.from == from_asset &&
+                row.to == to_asset &&
+                row.year == year &&
+                row.rep_period == rep_period,
+        _df,
+    )
 
     # filtering the assets
     if isempty(assets)
