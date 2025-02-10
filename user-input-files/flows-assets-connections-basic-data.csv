@@ -480,3 +480,9 @@ EU_SMR_CCS,OBZNL5_H_Demand,hydrogen
 EU_SMR_CCS,OBZNL6_H_Demand,hydrogen
 EU_SMR_CCS,OBZDE1_H_Demand,hydrogen
 EU_SMR_CCS,OBZDK1_H_Demand,hydrogen
+OBZNL1_electrolyzer,NL_H_Demand,hydrogen
+OBZNL2_electrolyzer,NL_H_Demand,hydrogen
+OBZNL3_electrolyzer,NL_H_Demand,hydrogen
+OBZNL4_electrolyzer,NL_H_Demand,hydrogen
+OBZNL5_electrolyzer,NL_H_Demand,hydrogen
+OBZNL6_electrolyzer,NL_H_Demand,hydrogen

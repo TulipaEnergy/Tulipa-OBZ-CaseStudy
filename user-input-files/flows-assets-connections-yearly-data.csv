@@ -480,3 +480,9 @@ EU_SMR_CCS,OBZNL5_H_Demand,2050,0.05,1
 EU_SMR_CCS,OBZNL6_H_Demand,2050,0.05,1
 EU_SMR_CCS,OBZDE1_H_Demand,2050,0.05,1
 EU_SMR_CCS,OBZDK1_H_Demand,2050,0.05,1
+OBZNL1_electrolyzer,NL_H_Demand,2050,0,0.65
+OBZNL2_electrolyzer,NL_H_Demand,2050,0,0.65
+OBZNL3_electrolyzer,NL_H_Demand,2050,0,0.65
+OBZNL4_electrolyzer,NL_H_Demand,2050,0,0.65
+OBZNL5_electrolyzer,NL_H_Demand,2050,0,0.65
+OBZNL6_electrolyzer,NL_H_Demand,2050,0,0.65

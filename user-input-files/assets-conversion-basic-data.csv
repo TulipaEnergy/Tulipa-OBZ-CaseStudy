@@ -1,6 +1,6 @@
 string,string,MW,string,string,degrees,degrees
 name,type,capacity,country,technology,lat,lon
-NL_electrolyzer,conversion,16004.56621,NL,electrolyzer,52.1326,5.2913
+NL_electrolyzer,conversion,4004.56621,NL,electrolyzer,52.1326,5.2913
 BE_electrolyzer,conversion,11118.72146,BE,electrolyzer,50.8503,4.3517
 DE_electrolyzer,conversion,68344.74886,DE,electrolyzer,51.1657,10.4515
 FR_electrolyzer,conversion,6803.652968,FR,electrolyzer,46.6034,1.8883
@@ -31,11 +31,11 @@ BG_electrolyzer,conversion,1518.26484,BG,electrolyzer,42.7339,25.4858
 RO_electrolyzer,conversion,4897.260274,RO,electrolyzer,45.9432,24.9668
 CY_electrolyzer,conversion,285.3881279,CY,electrolyzer,35.1264,33.4299
 OBZLL_electrolyzer,conversion,0,OBZLL,electrolyzer,53.1705,3.5288
-OBZNL1_electrolyzer,conversion,0,OBZNL1,electrolyzer,53.170,3.528
-OBZNL2_electrolyzer,conversion,0,OBZNL2,electrolyzer,53.170,3.528
-OBZNL3_electrolyzer,conversion,0,OBZNL3,electrolyzer,53.170,3.528
-OBZNL4_electrolyzer,conversion,0,OBZNL4,electrolyzer,53.170,3.528
-OBZNL5_electrolyzer,conversion,0,OBZNL5,electrolyzer,53.170,3.528
-OBZNL6_electrolyzer,conversion,0,OBZNL6,electrolyzer,53.170,3.528
+OBZNL1_electrolyzer,conversion,2000,OBZNL1,electrolyzer,53.170,3.528
+OBZNL2_electrolyzer,conversion,2000,OBZNL2,electrolyzer,53.170,3.528
+OBZNL3_electrolyzer,conversion,2000,OBZNL3,electrolyzer,53.170,3.528
+OBZNL4_electrolyzer,conversion,2000,OBZNL4,electrolyzer,53.170,3.528
+OBZNL5_electrolyzer,conversion,2000,OBZNL5,electrolyzer,53.170,3.528
+OBZNL6_electrolyzer,conversion,2000,OBZNL6,electrolyzer,53.170,3.528
 OBZDE1_electrolyzer,conversion,0,OBZDE1,electrolyzer,51.165,10.451
 OBZDK1_electrolyzer,conversion,0,OBZDK1,electrolyzer,56.263,9.501
