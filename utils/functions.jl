@@ -433,13 +433,15 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     )
     leftjoin!(df, df_assets_to; on = :to => :name)
 
-    # get assets flows going into the hub that are not storage
+    # get assets flows going into the hub that are not storage or conversion
     _df = filter(
         row ->
             row.country_from == row.country_to &&
                 row.type_from != "hub" &&
                 row.type_from != "storage" &&
-                row.type_to != "storage",
+                row.type_to != "storage" &&
+                row.type_from != "conversion" &&
+                row.type_to != "conversion",
         df,
     )
     gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
@@ -448,13 +450,15 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     end
     rename!(df_incoming_assets_flows, [:country_from => :country, :technology_from => :technology])
 
-    # get assets flows going out the hub that are not storage or demand
+    # get assets flows going out the hub that are not storage, conversion or demand
     _df = filter(
         row ->
             row.country_to == row.country_from &&
                 row.type_to != "hub" &&
                 row.type_to != "storage" &&
                 row.type_from != "storage" &&
+                row.type_to != "conversion" &&
+                row.type_from != "conversion" &&
                 row.type_to != "consumer",
         df,
     )
@@ -466,26 +470,43 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     df_outgoing_assets_flows.solution = -df_outgoing_assets_flows.solution
 
     # get storage discharge
-    _df = filter(row -> row.country_from == row.country_to && row.type_from == "storage", df)
-    gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
+    _df = filter(row -> row.type_from == "storage", df)
+    gdf = groupby(_df, [:country_to, :technology_from, :year, :rep_period, :time])
     df_storage_discharge = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_storage_discharge, [:country_from => :country, :technology_from => :technology])
+    rename!(df_storage_discharge, [:country_to => :country, :technology_from => :technology])
     df_storage_discharge.technology = string.(df_storage_discharge.technology, "_discharge")
 
     # get storage charge
-    _df = filter(row -> row.country_from == row.country_to && row.type_to == "storage", df)
-    gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
+    _df = filter(row -> row.type_to == "storage", df)
+    gdf = groupby(_df, [:country_from, :technology_to, :year, :rep_period, :time])
     df_storage_charge = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_storage_charge, [:country_to => :country, :technology_to => :technology])
+    rename!(df_storage_charge, [:country_from => :country, :technology_to => :technology])
     df_storage_charge.technology = string.(df_storage_charge.technology, "_charge")
     df_storage_charge.solution = -df_storage_charge.solution
 
+    # get conversion production
+    _df = filter(row -> row.type_from == "conversion", df)
+    gdf = groupby(_df, [:country_to, :technology_from, :year, :rep_period, :time])
+    df_conversion_production = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_conversion_production, [:country_to => :country, :technology_from => :technology])
+
+    # get storage consumption
+    _df = filter(row -> row.type_to == "conversion", df)
+    gdf = groupby(_df, [:country_from, :technology_to, :year, :rep_period, :time])
+    df_conversion_consumption = combine(gdf) do sdf
+        DataFrame(; solution = sum(sdf.solution))
+    end
+    rename!(df_conversion_consumption, [:country_from => :country, :technology_to => :technology])
+    df_conversion_consumption.solution = -df_conversion_consumption.solution
+
     # get exports to other countries
-    _df = filter(row -> row.country_from != row.country_to, df)
+    _df = filter(row -> row.country_from != row.country_to && row.type_from == row.type_to, df)
     gdf = groupby(_df, [:country_from, :technology_from, :year, :rep_period, :time])
     df_outgoing = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
@@ -495,7 +516,7 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
     df_outgoing.solution = df_outgoing.solution
 
     # get imports from other countries
-    _df = filter(row -> row.country_from != row.country_to, df)
+    _df = filter(row -> row.country_from != row.country_to && row.type_from == row.type_to, df)
     gdf = groupby(_df, [:country_to, :technology_to, :year, :rep_period, :time])
     df_incoming = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
@@ -523,6 +544,8 @@ function get_balance_per_country(energy_problem::EnergyProblem, assets::DataFram
         df_outgoing_assets_flows,
         df_storage_discharge,
         df_storage_charge,
+        df_conversion_production,
+        df_conversion_consumption,
         df_outgoing,
         df_incoming,
         df_demand_to,
