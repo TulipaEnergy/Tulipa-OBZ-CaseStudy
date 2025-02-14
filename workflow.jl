@@ -56,11 +56,10 @@ optimizer = Gurobi.Optimizer
 parameters = Dict("OutputFlag" => 1, "MIPGap" => 0.0, "FeasibilityTol" => 1e-5)
 
 # Read Tulipa input files 
-input_dir = "tulipa-energy-model-files"
 connection = DBInterface.connect(DuckDB.DB)
 read_csv_folder(
     connection,
-    joinpath(@__DIR__, input_dir);
+    joinpath(@__DIR__, tulipa_files_dir);
     schemas = TulipaEnergyModel.schema_per_table_name,
 )
 
