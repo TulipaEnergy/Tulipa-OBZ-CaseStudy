@@ -365,14 +365,13 @@ function _process_prices(connection, table_name, duals_key, energy_problem)
             AND cons.rep_period = rp.rep_period",
     ) |> DataFrame
 
-    # Get the weight for each representative period
+    # Get the weight for each representative period in the dataframe
     rep_periods_mapping = TulipaIO.get_table(connection, "rep_periods_mapping")
-    _df[!, :weight] = [
-        rep_periods_mapping[
-            (rep_periods_mapping.year.==year).&(rep_periods_mapping.rep_period.==rep_period),
-            :weight,
-        ][1] for (year, rep_period) in zip(_df.year, _df.rep_period)
-    ]
+    gdf = groupby(rep_periods_mapping, [:year, :rep_period])
+    rep_periods_weight = combine(gdf, :weight => sum => :weight)
+    weights = Dict((row.year, row.rep_period) => row.weight for row in eachrow(rep_periods_weight))
+    _df[!, :weight] =
+        [weights[year, rep_period] for (year, rep_period) in zip(_df.year, _df.rep_period)]
 
     # Get the duration of each timestep block
     _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
