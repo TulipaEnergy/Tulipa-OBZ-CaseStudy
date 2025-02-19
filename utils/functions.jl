@@ -366,9 +366,12 @@ function _process_prices(connection, table_name, duals_key, energy_problem)
     ) |> DataFrame
 
     # Get the weight for each representative period
+    rep_periods_mapping = TulipaIO.get_table(connection, "rep_periods_mapping")
     _df[!, :weight] = [
-        energy_problem.representative_periods[year][rep_period].weight for
-        (year, rep_period) in zip(_df.year, _df.rep_period)
+        rep_periods_mapping[
+            (rep_periods_mapping.year.==year).&(rep_periods_mapping.rep_period.==rep_period),
+            :weight,
+        ][1] for (year, rep_period) in zip(_df.year, _df.rep_period)
     ]
 
     # Get the duration of each timestep block
@@ -452,17 +455,8 @@ This function performs the following steps:
 
 """
 function get_balance_per_country(connection, energy_problem::EnergyProblem, assets::DataFrame)
-    # Get the flows dataframe to filter and create new columns
+    # Get the flows dataframe
     df = TulipaIO.get_table(connection, "var_flow")
-    df = filter(
-        row ->
-            energy_problem.graph[row.from].type == "hub" ||
-                energy_problem.graph[row.to].type == "hub",
-        df,
-    )
-    df[!, :duration] = df[!, :time_block_end] .- df[!, :time_block_start] .+ 1
-    df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
-    df = select(df, [:from, :to, :year, :rep_period, :time, :solution])
 
     # Exclude lat and lon columns from df_assets
     assets = select(assets, Not([:lat, :lon]))
@@ -478,6 +472,12 @@ function get_balance_per_country(connection, energy_problem::EnergyProblem, asse
         Dict(:type => :type_to, :country => :country_to, :technology => :technology_to),
     )
     leftjoin!(df, df_assets_to; on = :to => :name)
+
+    # Filter and create new columns in the df
+    df = filter(row -> row.type_from == "hub" || row.type_to == "hub", df)
+    df[!, :duration] = df[!, :time_block_end] .- df[!, :time_block_start] .+ 1
+    df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
+    #df = select(df, [:from, :to, :year, :rep_period, :time, :solution])
 
     # get assets flows going into the hub that are not storage or conversion
     _df = filter(
@@ -604,7 +604,7 @@ end
 # Function for plotting the prices
 
 """
-    plot_electricity_prices(
+    plot_prices(
     prices::DataFrame;
     assets = [],
     years = [],
@@ -613,10 +613,10 @@ end
     duration_curve = true,
 )
 
-Plots electricity prices over time for specified assets, years, and representative periods.
+Plots prices over time for specified assets, years, and representative periods.
 
 # Arguments
-- `prices::DataFrame`: A DataFrame containing the electricity prices data. It should have columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`.
+- `prices::DataFrame`: A DataFrame containing the prices data. It should have columns `:asset`, `:year`, `:rep_period`, `:time`, and `:price`.
 - `assets`: An optional array of assets to filter the data. If empty, all assets are included.
 - `years`: An optional array of years to filter the data. If empty, all years are included.
 - `rep_periods`: An optional array of representative periods to filter the data. If empty, all representative periods are included.
@@ -624,10 +624,10 @@ Plots electricity prices over time for specified assets, years, and representati
 - `duration_curve`: A boolean indicating whether to plot the duration curve.
 
 # Returns
-- A plot object with electricity prices over time for the specified filters.
+- A plot object with prices over time for the specified filters.
 
 """
-function plot_electricity_prices(
+function plot_prices(
     prices::DataFrame;
     assets = [],
     years = [],
@@ -764,8 +764,7 @@ end
 
 """
     plot_inter_storage_levels(
-        inter_storage_level::DataFrame
-        energy_problem::EnergyProblem;
+        connection;
         assets = [],
         plots_args = Dict(),
     ) -> Plot
@@ -773,8 +772,7 @@ end
 Plot the inter storage levels for the given assets.
 
 # Arguments
-- `inter_storage_level::DataFrame`: The DataFrame containing the inter storage level data.
-- `energy_problem::EnergyProblem`: An instance of the `EnergyProblem` type containing the energy problem data.
+- `connection`: DB connection to tables in the model.
 - `assets`: An array of assets to filter the data by. If empty, all assets are included.
 - `plots_args`: Dictionary with extra arguments for the plot from Plots.jl.
 
@@ -782,40 +780,29 @@ Plot the inter storage levels for the given assets.
 - `Plot`: A plot object showing the storage levels over time for the specified filters.
 
 """
-function plot_inter_storage_levels(
-    inter_storage_level::DataFrame,
-    energy_problem::EnergyProblem;
-    assets = [],
-    plots_args = Dict(),
-)
+function plot_inter_storage_levels(connection; assets = [], plots_args = Dict())
     _df = TulipaIO.get_table(connection, "var_storage_level_over_clustered_year")
-
-    # filtering the flows
-    _df = filter(
-        row ->
-            row.from == from_asset &&
-                row.to == to_asset &&
-                row.year == year &&
-                row.rep_period == rep_period,
-        _df,
-    )
 
     # filtering the assets
     if isempty(assets)
-        df = inter_storage_level
+        df = _df
     else
-        df = filter(row -> row.asset in assets, inter_storage_level)
+        df = filter(row -> row.asset in assets, _df)
     end
 
-    df[!, :SoC] = [
-        row.processed_value / (
-            if energy_problem.graph[row.asset].capacity_storage_energy == 0
-                1
-            else
-                energy_problem.graph[row.asset].capacity_storage_energy
-            end
-        ) for row in eachrow(df)
-    ]
+    assest_info = TulipaIO.get_table(connection, "asset")
+    capacity_storage_energy =
+        Dict(row.asset => row.capacity_storage_energy for row in eachrow(assest_info))
+    df[!, :SoC] = [row.solution / (
+        if capacity_storage_energy[row.asset] == 0
+            1
+        else
+            capacity_storage_energy[row.asset]
+        end
+    ) for row in eachrow(df)]
+
+    # rename period_block_start as period
+    rename!(df, :period_block_start => :period)
 
     p = plot(; plots_args...)
 

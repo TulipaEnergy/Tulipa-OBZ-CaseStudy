@@ -18,11 +18,15 @@ include("utils/functions.jl")
 # Read and transform user input files to Tulipa input files
 user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
+output_dir = "outputs"
 
-# Clean old files and create the directory
+# Clean old files and create the directories for inputs and outputs
 chmod(joinpath(@__DIR__, tulipa_files_dir), 0o777) # Change permission: all users have read, write, and execute permissions.
 rm(joinpath(@__DIR__, tulipa_files_dir); force = true, recursive = true)
 mkdir(joinpath(@__DIR__, tulipa_files_dir))
+if !isdir(joinpath(@__DIR__, output_dir))
+    mkdir(joinpath(@__DIR__, output_dir))
+end
 
 # Define default values
 default_values = get_default_values(; default_year = 2050)
@@ -66,6 +70,7 @@ read_csv_folder(
 # Solve the problem and store the solution
 energy_problem = run_scenario(
     connection;
+    output_folder = joinpath(@__DIR__, output_dir),
     optimizer = optimizer,
     parameters = parameters,
     #write_lp_file = true,
@@ -80,12 +85,6 @@ if energy_problem.termination_status == INFEASIBLE
     print(iis_model)
 end
 
-# Create "outputs" folder if it doesn't exist
-output_dir = "outputs"
-if !isdir(joinpath(@__DIR__, output_dir))
-    mkdir(joinpath(@__DIR__, output_dir))
-end
-
 # Create a file with the combined basic information of the assets
 assets_country_tecnology_file = "assets-country-tecnology-data.csv"
 df_assets_basic_data = create_one_file_for_assets_basic_info(
@@ -95,9 +94,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
     default_values,
 )
 
-# Save solution
-save_solution!(energy_problem)
-export_solution_to_csv_files(joinpath(@__DIR__, output_dir), energy_problem)
+# Calculate the prices, storage levels, and balances
 prices = get_prices_dataframe(connection, energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(connection)
 balances = get_balance_per_country(connection, energy_problem, df_assets_basic_data)
@@ -113,7 +110,7 @@ balance_file_name = joinpath(@__DIR__, output_dir, "eu-case-balance-per-country.
 CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0))
 
 # Plot the results
-prices_plot = plot_electricity_prices(
+prices_plot = plot_prices(
     prices;
     assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
     #rep_periods = [1, 2],
@@ -136,8 +133,7 @@ savefig(batteries_storage_levels_plot, batteries_storage_levels_plot_name)
 
 if n_rp > 1
     hydro_storage_levels_plot = plot_inter_storage_levels(
-        connection,
-        energy_problem;
+        connection;
         assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
         #plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
     )
