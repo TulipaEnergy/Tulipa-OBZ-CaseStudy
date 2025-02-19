@@ -1,5 +1,5 @@
 string,string,MW,string,string,degrees,degrees
-name,type,capacity,country,technology,lat,lon
+name,type,capacity,bidding_zone,technology,lat,lon
 NL_E_ENS,producer,33775.8785,NL,ENS,52.1326,5.2913
 NL_Wind_Onshore,producer,20000,NL,Wind_Onshore,52.1326,5.2913
 NL_Wind_Offshore,producer,49653,NL,Wind_Offshore,52.1326,5.2913

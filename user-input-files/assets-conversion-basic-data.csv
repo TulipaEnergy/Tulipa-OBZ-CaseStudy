@@ -1,5 +1,5 @@
 string,string,MW,string,string,degrees,degrees
-name,type,capacity,country,technology,lat,lon
+name,type,capacity,bidding_zone,technology,lat,lon
 NL_electrolyzer,conversion,16004.56621,NL,electrolyzer,52.1326,5.2913
 BE_electrolyzer,conversion,11118.72146,BE,electrolyzer,50.8503,4.3517
 DE_electrolyzer,conversion,68344.74886,DE,electrolyzer,51.1657,10.4515

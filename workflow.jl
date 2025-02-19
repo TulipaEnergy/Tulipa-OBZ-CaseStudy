@@ -86,9 +86,9 @@ if energy_problem.termination_status == INFEASIBLE
 end
 
 # Create a file with the combined basic information of the assets
-assets_country_tecnology_file = "assets-country-tecnology-data.csv"
+assets_bidding_zone_tecnology_file = "assets-bidding-zone-tecnology-data.csv"
 df_assets_basic_data = create_one_file_for_assets_basic_info(
-    assets_country_tecnology_file,
+    assets_bidding_zone_tecnology_file,
     joinpath(@__DIR__, user_input_dir),
     joinpath(@__DIR__, output_dir),
     default_values,
@@ -97,7 +97,7 @@ df_assets_basic_data = create_one_file_for_assets_basic_info(
 # Calculate the prices, storage levels, and balances
 prices = get_prices_dataframe(connection, energy_problem)
 intra_storage_levels = get_intra_storage_levels_dataframe(connection)
-balances = get_balance_per_country(connection, energy_problem, df_assets_basic_data)
+balances = get_balance_per_bidding_zone(connection, energy_problem, df_assets_basic_data)
 
 # Save the solutions to CSV files
 prices_file_name = joinpath(@__DIR__, output_dir, "eu-case-prices.csv")
@@ -106,7 +106,7 @@ CSV.write(prices_file_name, unstack(prices, :asset, :price))
 intra_storage_levels_file_name = joinpath(@__DIR__, output_dir, "eu-case-intra-storage-levels.csv")
 CSV.write(intra_storage_levels_file_name, unstack(intra_storage_levels, :asset, :SoC))
 
-balance_file_name = joinpath(@__DIR__, output_dir, "eu-case-balance-per-country.csv")
+balance_file_name = joinpath(@__DIR__, output_dir, "eu-case-balance-per-bidding-zone.csv")
 CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0))
 
 # Plot the results
@@ -148,15 +148,15 @@ end
 hydro_storage_levels_plot_name = joinpath(@__DIR__, output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-country = "NL"
-balance_plot = plot_country_balance(
+bidding_zone = "NL"
+balance_plot = plot_bidding_zone_balance(
     balances;
-    country = country,
+    bidding_zone = bidding_zone,
     year = 2050,
     rep_period = 1,
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760),
 )
-balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$country.png")
+balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$bidding_zone.png")
 savefig(balance_plot, balance_plot_name)
 
 from_asset = "OBZLL_E_Balance"

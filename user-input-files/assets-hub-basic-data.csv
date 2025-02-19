@@ -1,5 +1,5 @@
 string,string,string,string,degrees,degrees
-name,type,country,technology,lat,lon
+name,type,bidding_zone,technology,lat,lon
 NL_E_Balance,hub,NL,Balance,52.1326,5.2913
 BE_E_Balance,hub,BE,Balance,50.8503,4.3517
 DE_E_Balance,hub,DE,Balance,51.1657,10.4515
