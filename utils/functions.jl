@@ -145,7 +145,11 @@ function process_flows_rep_period_partition_file(
         from_partition = df_assets_partition[df_assets_partition.asset.==row.from_asset, :partition]
         to_partition = df_assets_partition[df_assets_partition.asset.==row.to_asset, :partition]
         if !isempty(from_partition) && !isempty(to_partition)
-            row.partition = max(from_partition[1], to_partition[1])
+            if row.is_transport
+                row.partition = max(from_partition[1], to_partition[1])
+            else
+                row.partition = min(from_partition[1], to_partition[1])
+            end
         elseif !isempty(from_partition)
             row.partition = from_partition[1]
         elseif !isempty(to_partition)
