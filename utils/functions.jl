@@ -811,32 +811,52 @@ function plot_bidding_zone_balance(
         df,
     )
     technologies = unique(df.technology)
-    technologies = push!(technologies, "NetExchange")
+    technologies = push!(technologies, "NetExchangeWithHubs")
+    technologies = push!(technologies, "NetExchangeWithConsumers")
     technologies = filter!(
-        x -> x != "Demand" && x != "IncomingTransportFlow" && x != "OutgoingTransportFlow",
+        x ->
+            x ∉ [
+                "Demand",
+                "OutgoingFlowToHub",
+                "IncomingFlowToHub",
+                "OutgoingFlowToConsumer",
+                "IncomingFlowToConsumer",
+            ],
         technologies,
     )
     has_demand = "Demand" in unique(df.technology) ? true : false
 
     df_unstack = unstack(df, :technology, :solution)
-    if "IncomingTransportFlow" ∉ names(df_unstack)
-        df_unstack.IncomingTransportFlow = zeros(size(df_unstack, 1))
+    if "OutgoingFlowToHub" ∉ names(df_unstack)
+        df_unstack.OutgoingFlowToHub = zeros(size(df_unstack, 1))
     end
-    if "OutgoingTransportFlow" ∉ names(df_unstack)
-        df_unstack.OutgoingTransportFlow = zeros(size(df_unstack, 1))
+    if "IncomingFlowToHub" ∉ names(df_unstack)
+        df_unstack.IncomingFlowToHub = zeros(size(df_unstack, 1))
     end
-    df_unstack.NetExchange = df_unstack.IncomingTransportFlow .- df_unstack.OutgoingTransportFlow
+    if "OutgoingFlowToConsumer" ∉ names(df_unstack)
+        df_unstack.OutgoingFlowToConsumer = zeros(size(df_unstack, 1))
+    end
+    if "IncomingFlowToConsumer" ∉ names(df_unstack)
+        df_unstack.IncomingFlowToConsumer = zeros(size(df_unstack, 1))
+    end
+    df_unstack.NetExchangeWithHubs = df_unstack.IncomingFlowToHub .+ df_unstack.OutgoingFlowToHub
+    df_unstack.NetExchangeWithConsumers =
+        df_unstack.IncomingFlowToConsumer .+ df_unstack.OutgoingFlowToConsumer
     demand = has_demand ? df_unstack.Demand : zeros(size(df_unstack, 1))
     df_unstack = select!(df_unstack, technologies)
 
+    # change the NetExchangeWithConsumers to be the first column in the dataframe
+    df_unstack = df_unstack[:, [end; 1:end-1]]
+    df_columns = names(df_unstack)
+
     groupedbar(
         Matrix(df_unstack) / 1000;
-        labels = reshape(technologies, 1, length(technologies)),
+        labels = reshape(df_columns, 1, length(df_columns)),
         bar_position = :stack,
         size = (1200, 600),
         left_margin = [4mm 0mm],
         bottom_margin = [4mm 0mm],
-        legend_column = min(length(technologies), 4),
+        legend_column = min(length(df_columns), 4),
         xlabel = "Hour",
         ylabel = "[GWh]",
         dpi = 600,
