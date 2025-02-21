@@ -148,7 +148,7 @@ end
 hydro_storage_levels_plot_name = joinpath(@__DIR__, output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-bidding_zone = "NL"
+bidding_zone = "NL_E_Balance" # Any hub or consumer is a valid bidding zone
 balance_plot = plot_bidding_zone_balance(
     balances;
     bidding_zone = bidding_zone,
