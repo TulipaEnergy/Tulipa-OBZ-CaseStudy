@@ -1,0 +1,41 @@
+# Go to https://citation-file-format.github.io/cff-initializer-javascript/#/ to finish this
+cff-version: 1.2.0
+title: Tulipa OBZ Case Study
+message: >-
+  If you use this repository, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Diego A.
+    family-names: Tejada-Arango
+    email: diego.tejadaarango@tno.nl
+    affiliation: TNO
+    orcid: "https://orcid.org/0000-0002-3278-9283"
+  - given-names: Germán
+    family-names: Morales-España
+    email: german.morales@tno.nl
+    affiliation: TNO
+    orcid: "https://orcid.org/0000-0002-6372-6197"
+  - given-names: Isaï
+    family-names: Magan
+    email: isai.magan@tno.nl
+    affiliation: TNO
+  - given-names: Lauren
+    family-names: Clisby
+    email: lauren.clisby@tno.nl
+    affiliation: TNO
+    orcid: "https://orcid.org/0009-0008-7848-4144"
+  - given-names: Noelia
+    family-names: Martin-Gregorio
+    email: noelia.martingregorio@tno.nl
+    affiliation: TNO
+repository-code: "https://github.com/TulipaEnergy/Tulipa-OBZ-CaseStudy"
+abstract: >-
+  The Tulipa's Offshore Bidding Zone (OBZ) in the EU's North Sea is a
+  case study to showcase the workflow to use and analyze the results
+  from the TulipaEnergyModel.jl package.
+keywords:
+  - Open source data
+  - Energy system modelling
+  - Energy system analysis
+license: Apache-2.0
