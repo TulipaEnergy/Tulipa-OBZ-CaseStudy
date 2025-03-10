@@ -55,9 +55,9 @@ include("utils/preprocess-user-inputs.jl")
 optimizer = HiGHS.Optimizer
 parameters = Dict("output_flag" => true, "mip_rel_gap" => 0.0, "mip_feasibility_tolerance" => 1e-5)
 
-using Gurobi
-optimizer = Gurobi.Optimizer
-parameters = Dict("OutputFlag" => 1, "MIPGap" => 0.0, "FeasibilityTol" => 1e-5)
+# using Gurobi
+# optimizer = Gurobi.Optimizer
+# parameters = Dict("OutputFlag" => 1, "MIPGap" => 0.0, "FeasibilityTol" => 1e-5)
 
 # Read Tulipa input files 
 connection = DBInterface.connect(DuckDB.DB)
