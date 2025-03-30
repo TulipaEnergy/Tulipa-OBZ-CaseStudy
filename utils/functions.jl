@@ -90,6 +90,7 @@ function process_user_files(
         tbl_name = tbl_copy
     end
 
+    _cnames = map(Symbol, TulipaIO.tbl_cols(con, tbl_name).column_name)
     missing_columns_from_schema = setdiff(columns, _cnames)
 
     if isempty(missing_columns_from_schema)
@@ -146,7 +147,7 @@ function process_flows_rep_period_partition_file(
     default_values::Dict;
     number_of_rep_periods::Int = 1,
 )
-    columns = [name for (name, _) in schema]
+    columns = [Symbol(name) for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
 
     df_assets_partition = CSV.read(assets_partition_file, DataFrame)
@@ -155,7 +156,7 @@ function process_flows_rep_period_partition_file(
     df = vcat(df, df_flows; cols = :union)
 
     for (key, value) in default_values
-        if key in names(df)
+        if key in propertynames(df)
             df[!, key] = coalesce.(df[!, key], value)
         end
     end
@@ -242,11 +243,11 @@ function create_timeframe_partition_file(
     schema::Union{NTuple,OrderedDict},
     default_values::Dict,
 )
-    columns = [name for (name, _) in schema]
+    columns = [Symbol(name) for (name, _) in schema]
     df = DataFrame(Dict(name => Vector{Any}() for name in columns))
     df = vcat(df, seasonal_assets; cols = :union)
     for (key, value) in default_values
-        if key in names(df)
+        if key in propertynames(df)
             df[!, key] = coalesce.(df[!, key], value)
         end
     end
