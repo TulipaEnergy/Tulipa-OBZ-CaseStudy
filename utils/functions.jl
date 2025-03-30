@@ -47,20 +47,27 @@ function process_user_files(
     con = DBInterface.connect(DuckDB.DB)
 
     tbl_name = "my_tbl"
+    columns = [Symbol(name) for (name, _) in schema]
+
     file_glob = "$(starting_name_in_files)*$(ending_name_in_files)"
-    path_glob = joinpath(@__DIR__, input_folder, file_glob)
+    path_glob = joinpath(input_folder, file_glob)
     try
-        TulipaIO.create_tbl(con, path_glob; name=tbl_name, union_by_name=true, skip=1)
+        TulipaIO.create_tbl(con, path_glob; name = tbl_name, union_by_name = true, skip = 1)
     catch err
         if isa(err, TulipaIO.FileNotFoundError)
             @warn "Returning empty DataFrame" err
-            return DataFrame()
+            create_table_query =
+                "CREATE TABLE $tbl_name (" *
+                join(["$name $type" for (name, type) in schema], ", ") *
+                ")"
+            DBInterface.execute(con, create_table_query)
+            DBInterface.execute(con, "COPY $tbl_name TO '$output_file' (FORMAT csv, HEADER)")
+            return DBInterface.execute(con, "SELECT * FROM $tbl_name") |> DataFrame
         end
     end
 
     TulipaIO.rename_cols(con, tbl_name; map_to_rename_user_columns...)
 
-    columns = [name for (name, _) in schema]
     _cnames = map(Symbol, TulipaIO.tbl_cols(con, tbl_name).column_name)
     for col in setdiff(_cnames, columns)
         DBInterface.execute(con, "ALTER TABLE $tbl_name DROP $col")
@@ -68,7 +75,9 @@ function process_user_files(
 
     _cnames = map(Symbol, TulipaIO.tbl_cols(con, tbl_name).column_name)
     for (key, value) in filter(p -> p.first in _cnames, default_values)
-        TulipaIO.update_tbl(con, tbl_name, Dict(key => value); where_ = "$key IS NULL")
+        if value != "NULL"
+            TulipaIO.update_tbl(con, tbl_name, Dict(key => value); where_ = "$key IS NULL")
+        end
     end
 
     if number_of_rep_periods > 1
@@ -79,6 +88,20 @@ function process_user_files(
             DBInterface.execute(con, "INSERT INTO $tbl_copy SELECT *, $rp FROM $tbl_name")
         end
         tbl_name = tbl_copy
+    end
+
+    missing_columns_from_schema = setdiff(columns, _cnames)
+
+    if isempty(missing_columns_from_schema)
+        DBInterface.execute(con, "COPY $tbl_name TO '$output_file' (FORMAT csv, HEADER)")
+        return DBInterface.execute(con, "SELECT * FROM $tbl_name") |> DataFrame
+    end
+    sql_statements_to_add_missing_columns = [
+        "ALTER TABLE $(tbl_name) ADD COLUMN \"$name\" $(schema[string(name)]) DEFAULT $(default_values[name]) ;"
+        for name in missing_columns_from_schema
+    ]
+    for sql_statement in sql_statements_to_add_missing_columns
+        DBInterface.execute(con, sql_statement)
     end
 
     DBInterface.execute(con, "COPY $tbl_name TO '$output_file' (FORMAT csv, HEADER)")
