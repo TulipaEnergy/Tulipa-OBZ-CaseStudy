@@ -2,6 +2,7 @@
 cd(@__DIR__)
 using Pkg: Pkg
 Pkg.activate(".")
+#Pkg.update()
 Pkg.instantiate()
 
 @info "Loading the packages"
@@ -18,6 +19,7 @@ using CSV
 using TulipaClustering
 using Distances
 using Statistics
+using Glob
 
 @info "Including the helper functions"
 include("utils/functions.jl")
@@ -80,7 +82,7 @@ energy_problem = run_scenario(
     output_folder = joinpath(@__DIR__, output_dir),
     optimizer = optimizer,
     parameters = parameters,
-    #write_lp_file = true,
+    #model_file_name = "model.lp",
     show_log = true,
     log_file = "log_file.log",
     #enable_names = false,
@@ -108,8 +110,8 @@ prices = get_prices_dataframe(connection, energy_problem)
 @info "Post-processig of storage levels"
 intra_storage_levels = get_intra_storage_levels_dataframe(connection)
 
-@info "Post-processig of balance per bidding zone"
-balances = get_balance_per_bidding_zone(connection, energy_problem, df_assets_basic_data)
+@info "Post-processig of balance per balancing asset"
+balances = get_balance_per_asset(connection, energy_problem, df_assets_basic_data)
 
 @info "Saving the results to CSV files"
 prices_file_name = joinpath(@__DIR__, output_dir, "eu-case-prices.csv")
@@ -160,15 +162,15 @@ end
 hydro_storage_levels_plot_name = joinpath(@__DIR__, output_dir, "eu-case-hydro-storage-levels.png")
 savefig(hydro_storage_levels_plot, hydro_storage_levels_plot_name)
 
-bidding_zone = "NL_E_Balance" # Any hub or consumer is a valid bidding zone
-balance_plot = plot_bidding_zone_balance(
+asset = "NL_E_Balance" # Any hub or consumer is a valid assets
+balance_plot = plot_asset_balance(
     balances;
-    bidding_zone = bidding_zone,
+    asset = asset,
     year = 2050,
     rep_period = 1,
     plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760),
 )
-balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$bidding_zone.png")
+balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$asset.png")
 savefig(balance_plot, balance_plot_name)
 
 from_asset = "OBZLL_E_Balance"
