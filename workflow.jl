@@ -29,10 +29,10 @@ user_input_dir = "user-input-files"
 tulipa_files_dir = "tulipa-energy-model-files"
 output_dir = "outputs"
 
-## Clean old files and create the directories for inputs and outputs
-chmod(joinpath(@__DIR__, tulipa_files_dir), 0o777) # Change permission: all users have read, write, and execute permissions.
-rm(joinpath(@__DIR__, tulipa_files_dir); force = true, recursive = true)
-mkdir(joinpath(@__DIR__, tulipa_files_dir))
+## Create the directories for tulipa files and outputs
+if !mkdir(joinpath(@__DIR__, tulipa_files_dir))
+    mkdir(joinpath(@__DIR__, tulipa_files_dir))
+end
 if !isdir(joinpath(@__DIR__, output_dir))
     mkdir(joinpath(@__DIR__, output_dir))
 end
