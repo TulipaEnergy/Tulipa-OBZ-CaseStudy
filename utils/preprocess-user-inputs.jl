@@ -7,7 +7,7 @@ process_user_files(
     "assets",
     "yearly-data.csv",
     default_values;
-    map_to_rename_user_columns = Dict(:name => "asset"),
+    map_to_rename_user_columns = Dict(:name => "asset", :year => "milestone_year"),
 )
 
 ## write asset-commission file
