@@ -207,7 +207,7 @@ Create a single file containing basic information about assets.
 # Description
 This function processes user input files located in `user_input_dir`, applies a predefined schema,
 and saves the resulting data to a file named `file_name` in the `output_dir`.
-The schema includes columns for name, type, bidding_zone, technology, latitude, and longitude.
+The schema includes columns for name, type, asset, technology, latitude, and longitude.
 Default values for missing data are provided by the `default_values` dictionary.
 
 """
@@ -215,15 +215,14 @@ function create_one_file_for_assets_basic_info(
     file_name::String,
     user_input_dir::String,
     output_dir::String,
-    default_values::Dict{String,Any},
+    default_values::Dict{Symbol,Any},
 )
     schema = (
-        :name => "VARCHAR",
-        :type => "VARCHAR",
-        :bidding_zone => "VARCHAR",
-        :technology => "VARCHAR",
-        :lat => "DOUBLE",
-        :lon => "DOUBLE",
+        "asset" => "VARCHAR",
+        "type" => "VARCHAR",
+        "technology" => "VARCHAR",
+        "lat" => "DOUBLE",
+        "lon" => "DOUBLE",
     )
     df = process_user_files(
         user_input_dir,
@@ -231,7 +230,8 @@ function create_one_file_for_assets_basic_info(
         schema,
         "assets",
         "basic-data.csv",
-        default_values,
+        default_values;
+        map_to_rename_user_columns = Dict(:name => "asset"),
     )
     return df
 end
