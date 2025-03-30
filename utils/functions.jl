@@ -444,7 +444,7 @@ function get_intra_storage_levels_dataframe(connection)
 end
 
 """
-    get_balance_per_bidding_zone(energy_problem::EnergyProblem, assets::DataFrame) -> DataFrame
+    get_balance_per_asset(energy_problem::EnergyProblem, assets::DataFrame) -> DataFrame
 
 Calculate the energy balance per bidding zone based on the given energy problem and assets data.
 
@@ -455,7 +455,7 @@ Calculate the energy balance per bidding zone based on the given energy problem 
 
 # Returns
 - `DataFrame`: A DataFrame containing the energy balance per bidding zone with columns:
-    - `bidding_zone`: The bidding zone name.
+    - `asset`: The asset name.
     - `technology`: The technology type.
     - `year`: The year.
     - `rep_period`: The representative period.
@@ -463,7 +463,7 @@ Calculate the energy balance per bidding zone based on the given energy problem 
     - `solution`: The calculated balance value.
 
 """
-function get_balance_per_bidding_zone(connection, energy_problem::EnergyProblem, assets::DataFrame)
+function get_balance_per_asset(connection, energy_problem::EnergyProblem, assets::DataFrame)
     # Get the flows dataframe
     df = TulipaIO.get_table(connection, "var_flow")
 
@@ -473,18 +473,12 @@ function get_balance_per_bidding_zone(connection, energy_problem::EnergyProblem,
     # Merge df with df_assets
     df_assets_from = rename(
         _assets,
-        Dict(
-            :type => :type_from,
-            :bidding_zone => :bidding_zone_from,
-            :technology => :technology_from,
-        ),
+        Dict(:type => :type_from, :asset => :asset_from, :technology => :technology_from),
     )
-    leftjoin!(df, df_assets_from; on = :from => :name)
-    df_assets_to = rename(
-        _assets,
-        Dict(:type => :type_to, :bidding_zone => :bidding_zone_to, :technology => :technology_to),
-    )
-    leftjoin!(df, df_assets_to; on = :to => :name)
+    leftjoin!(df, df_assets_from; on = :from_asset => :asset_from)
+    df_assets_to =
+        rename(_assets, Dict(:type => :type_to, :asset => :asset_to, :technology => :technology_to))
+    leftjoin!(df, df_assets_to; on = :to_asset => :asset_to)
 
     # Filter and create new columns in the df 
     # note: we only get the flows that are going to or coming from hubs and consumers
@@ -494,94 +488,94 @@ function get_balance_per_bidding_zone(connection, energy_problem::EnergyProblem,
         df,
     )
     df[!, :duration] = df[!, :time_block_end] .- df[!, :time_block_start] .+ 1
-    df = unroll_dataframe(df, [:from, :to, :year, :rep_period])
+    df = unroll_dataframe(df, [:from_asset, :to_asset, :year, :rep_period])
 
     # Get producers into the balance
     _df = filter(row -> row.type_from == "producer" && row.type_to in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:to, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:to_asset, :technology_from, :year, :rep_period, :time])
     df_producer = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_producer, [:to => :bidding_zone, :technology_from => :technology])
+    rename!(df_producer, [:to_asset => :asset, :technology_from => :technology])
 
     # Get storage discharge
     _df = filter(row -> row.type_from == "storage" && row.type_to in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:to, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:to_asset, :technology_from, :year, :rep_period, :time])
     df_storage_discharge = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_storage_discharge, [:to => :bidding_zone, :technology_from => :technology])
+    rename!(df_storage_discharge, [:to_asset => :asset, :technology_from => :technology])
     df_storage_discharge.technology = string.(df_storage_discharge.technology, "_discharge")
 
     # Get storage charge
     _df = filter(row -> row.type_to == "storage" && row.type_from in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:from, :technology_to, :year, :rep_period, :time])
+    gdf = groupby(_df, [:from_asset, :technology_to, :year, :rep_period, :time])
     df_storage_charge = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_storage_charge, [:from => :bidding_zone, :technology_to => :technology])
+    rename!(df_storage_charge, [:from_asset => :asset, :technology_to => :technology])
     df_storage_charge.technology = string.(df_storage_charge.technology, "_charge")
     df_storage_charge.solution = -df_storage_charge.solution
 
     # Get conversion production
     _df = filter(row -> row.type_from == "conversion" && row.type_to in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:to, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:to_asset, :technology_from, :year, :rep_period, :time])
     df_conversion_production = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_conversion_production, [:to => :bidding_zone, :technology_from => :technology])
+    rename!(df_conversion_production, [:to_asset => :asset, :technology_from => :technology])
 
     # get conversion consumption
     _df = filter(row -> row.type_to == "conversion" && row.type_from in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:from, :technology_to, :year, :rep_period, :time])
+    gdf = groupby(_df, [:from_asset, :technology_to, :year, :rep_period, :time])
     df_conversion_consumption = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_conversion_consumption, [:from => :bidding_zone, :technology_to => :technology])
+    rename!(df_conversion_consumption, [:from_asset => :asset, :technology_to => :technology])
     df_conversion_consumption.solution = -df_conversion_consumption.solution
 
     # get outgoing/incoming to hubs from hubs and consumers
     _df = filter(row -> row.type_to == "hub" && row.type_from in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:from, :technology_to, :year, :rep_period, :time])
+    gdf = groupby(_df, [:from_asset, :technology_to, :year, :rep_period, :time])
     df_outgoing_to_hubs = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_outgoing_to_hubs, [:from => :bidding_zone, :technology_to => :technology])
+    rename!(df_outgoing_to_hubs, [:from_asset => :asset, :technology_to => :technology])
     df_outgoing_to_hubs.technology .= "OutgoingFlowToHub"
     df_outgoing_to_hubs.solution = -df_outgoing_to_hubs.solution
 
-    gdf = groupby(_df, [:to, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:to_asset, :technology_from, :year, :rep_period, :time])
     df_incoming_from_hubs = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_incoming_from_hubs, [:to => :bidding_zone, :technology_from => :technology])
+    rename!(df_incoming_from_hubs, [:to_asset => :asset, :technology_from => :technology])
     df_incoming_from_hubs.technology .= "IncomingFlowToHub"
 
     # get outgoing/incoming to consumers from hubs and consumers
     _df = filter(row -> row.type_to == "consumer" && row.type_from in ["hub", "consumer"], df)
-    gdf = groupby(_df, [:from, :technology_to, :year, :rep_period, :time])
+    gdf = groupby(_df, [:from_asset, :technology_to, :year, :rep_period, :time])
     df_outgoing_to_consumers = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_outgoing_to_consumers, [:from => :bidding_zone, :technology_to => :technology])
+    rename!(df_outgoing_to_consumers, [:from_asset => :asset, :technology_to => :technology])
     df_outgoing_to_consumers.technology .= "OutgoingFlowToConsumer"
     df_outgoing_to_consumers.solution = -df_outgoing_to_consumers.solution
 
-    gdf = groupby(_df, [:to, :technology_from, :year, :rep_period, :time])
+    gdf = groupby(_df, [:to_asset, :technology_from, :year, :rep_period, :time])
     df_incoming_from_consumers = combine(gdf) do sdf
         DataFrame(; solution = sum(sdf.solution))
     end
-    rename!(df_incoming_from_consumers, [:to => :bidding_zone, :technology_from => :technology])
+    rename!(df_incoming_from_consumers, [:to_asset => :asset, :technology_from => :technology])
     df_incoming_from_consumers.technology .= "IncomingFlowToConsumer"
 
     # Get demand of the consumers
     df_demand = TulipaIO.get_table(connection, "cons_balance_consumer")
     df_demand[!, :solution] = value.(energy_problem.model[:balance_consumer])
-    df_demand = leftjoin!(df_demand, _assets; on = :asset => :name)
+    df_demand = leftjoin!(df_demand, _assets; on = :asset => :asset)
     df_demand[!, :duration] = df_demand[!, :time_block_end] .- df_demand[!, :time_block_start] .+ 1
     df_demand = unroll_dataframe(df_demand, [:asset, :year, :rep_period])
     df_demand = select(df_demand, [:asset, :technology, :year, :rep_period, :time, :solution])
-    rename!(df_demand, [:asset => :bidding_zone])
+    rename!(df_demand, [:asset => :asset])
 
     df_balance = vcat(
         df_producer,
@@ -596,8 +590,7 @@ function get_balance_per_bidding_zone(connection, energy_problem::EnergyProblem,
         df_demand,
     )
 
-    df_balance =
-        select(df_balance, [:bidding_zone, :technology, :year, :rep_period, :time, :solution])
+    df_balance = select(df_balance, [:asset, :technology, :year, :rep_period, :time, :solution])
 
     return df_balance
 end
