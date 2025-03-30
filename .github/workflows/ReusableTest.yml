@@ -36,4 +36,4 @@ jobs:
               uses: julia-actions/cache@v2
             - uses: julia-actions/julia-buildpkg@v1
             - name: run workflow
-              run: julia --project=. -e 'using Pkg; Pkg.instantiate(); include("workflow.jl")'
+              run: julia --project=. -e 'using Pkg; Pkg.instantiate(); include("test/test-workflow.jl")'
