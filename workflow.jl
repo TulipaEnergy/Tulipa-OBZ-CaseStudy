@@ -30,7 +30,7 @@ tulipa_files_dir = "tulipa-energy-model-files"
 output_dir = "outputs"
 
 ## Create the directories for tulipa files and outputs
-if !mkdir(joinpath(@__DIR__, tulipa_files_dir))
+if !isdir(joinpath(@__DIR__, tulipa_files_dir))
     mkdir(joinpath(@__DIR__, tulipa_files_dir))
 end
 if !isdir(joinpath(@__DIR__, output_dir))
