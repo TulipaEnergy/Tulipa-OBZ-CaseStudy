@@ -894,15 +894,15 @@ function plot_flow(
     # filtering the flows
     _df = filter(
         row ->
-            row.from == from_asset &&
-                row.to == to_asset &&
+            row.from_asset == from_asset &&
+                row.to_asset == to_asset &&
                 row.year == year &&
                 row.rep_period == rep_period,
         _df,
     )
 
     _df[!, :duration] = _df[!, :time_block_end] .- _df[!, :time_block_start] .+ 1
-    _df = unroll_dataframe(_df, [:from, :to, :year, :rep_period])
+    _df = unroll_dataframe(_df, [:from_asset, :to_asset, :year, :rep_period])
 
     # group by representative period
     grouped_df = groupby(_df, [:rep_period])
@@ -916,7 +916,7 @@ function plot_flow(
             p[i],
             group[!, :time],
             group[!, :solution] / 1000;
-            group = (group[!, :from], group[!, :to]),
+            group = (group[!, :from_asset], group[!, :to_asset]),
             label = string(from_asset, " -> ", to_asset),
             xlabel = "Hour",
             ylabel = "[GWh]",
