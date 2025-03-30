@@ -49,7 +49,7 @@ CSV.write(output_profiles_file, clustered_profiles; append = false, writeheader 
 
 # Save the mapping data
 mapping = TulipaClustering.weight_matrix_to_df(clustering_result.weight_matrix)
-mapping.year .= default_values["year"]
+mapping.year .= default_values[:year]
 mapping = select(mapping, [:year, :period, :rep_period, :weight])
 CSV.write(output_mapping_file, mapping; append = false, writeheader = true)
 
