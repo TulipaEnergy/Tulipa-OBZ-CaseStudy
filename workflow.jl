@@ -32,6 +32,9 @@ output_dir = "outputs"
 ## Create the directories for tulipa files and outputs
 if !isdir(joinpath(@__DIR__, tulipa_files_dir))
     mkdir(joinpath(@__DIR__, tulipa_files_dir))
+else
+    rm(joinpath(@__DIR__, tulipa_files_dir); force = true, recursive = true)
+    mkdir(joinpath(@__DIR__, tulipa_files_dir))
 end
 if !isdir(joinpath(@__DIR__, output_dir))
     mkdir(joinpath(@__DIR__, output_dir))
