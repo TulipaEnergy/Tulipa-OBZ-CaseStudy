@@ -813,18 +813,14 @@ function plot_inter_storage_levels(connection; assets = [], plots_args = Dict())
     return p
 end
 
-function plot_bidding_zone_balance(
+function plot_asset_balance(
     df::DataFrame;
-    bidding_zone::String,
+    asset::String,
     year::Int,
     rep_period::Int,
     plots_args = Dict(),
 )
-    df = filter(
-        row ->
-            row.bidding_zone == bidding_zone && row.year == year && row.rep_period == rep_period,
-        df,
-    )
+    df = filter(row -> row.asset == asset && row.year == year && row.rep_period == rep_period, df)
     technologies = unique(df.technology)
     technologies = push!(technologies, "NetExchangeWithHubs")
     technologies = push!(technologies, "NetExchangeWithConsumers")
