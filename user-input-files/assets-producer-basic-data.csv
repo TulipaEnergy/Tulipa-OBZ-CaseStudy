@@ -198,8 +198,6 @@ OBZNL1_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
 OBZNL2_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
 OBZNL3_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
 OBZNL4_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
-OBZNL5_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
-OBZNL6_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
-OBZDE1_Wind_Offshore,producer,2000,Wind_Offshore,51.165,10.451
-OBZDK1_Wind_Offshore,producer,4000,Wind_Offshore,56.263,9.501
+OBZDEDK_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
+OBZNOUK_Wind_Offshore,producer,4000,Wind_Offshore,53.170,3.528
 EU_SMR_CCS,producer,999999999,SMR_CCS,45.3,-3.6

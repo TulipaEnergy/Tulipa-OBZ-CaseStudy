@@ -198,8 +198,6 @@ OBZNL1_Wind_Offshore,2050,1,1
 OBZNL2_Wind_Offshore,2050,1,1
 OBZNL3_Wind_Offshore,2050,1,1
 OBZNL4_Wind_Offshore,2050,1,1
-OBZNL5_Wind_Offshore,2050,1,1
-OBZNL6_Wind_Offshore,2050,1,1
-OBZDE1_Wind_Offshore,2050,1,1
-OBZDK1_Wind_Offshore,2050,1,1
+OBZDEDK_Wind_Offshore,2050,1,1
+OBZNOUK_Wind_Offshore,2050,1,1
 EU_SMR_CCS,2050,1,1

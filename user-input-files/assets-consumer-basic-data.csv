@@ -35,10 +35,8 @@ OBZNL1_E_Demand,consumer,Demand,53.170,3.528
 OBZNL2_E_Demand,consumer,Demand,53.170,3.528
 OBZNL3_E_Demand,consumer,Demand,53.170,3.528
 OBZNL4_E_Demand,consumer,Demand,53.170,3.528
-OBZNL5_E_Demand,consumer,Demand,53.170,3.528
-OBZNL6_E_Demand,consumer,Demand,53.170,3.528
-OBZDE1_E_Demand,consumer,Demand,51.165,10.451
-OBZDK1_E_Demand,consumer,Demand,56.263,9.501
+OBZDEDK_E_Demand,consumer,Demand,53.170,3.528
+OBZNOUK_E_Demand,consumer,Demand,53.170,3.528
 NL_H_Demand,consumer,Demand,52.1326,5.2913
 BE_H_Demand,consumer,Demand,50.8503,4.3517
 DE_H_Demand,consumer,Demand,51.1657,10.4515
@@ -74,7 +72,5 @@ OBZNL1_H_Demand,consumer,Demand,53.170,3.528
 OBZNL2_H_Demand,consumer,Demand,53.170,3.528
 OBZNL3_H_Demand,consumer,Demand,53.170,3.528
 OBZNL4_H_Demand,consumer,Demand,53.170,3.528
-OBZNL5_H_Demand,consumer,Demand,53.170,3.528
-OBZNL6_H_Demand,consumer,Demand,53.170,3.528
-OBZDE1_H_Demand,consumer,Demand,51.165,10.451
-OBZDK1_H_Demand,consumer,Demand,56.263,9.501
+OBZDEDK_H_Demand,consumer,Demand,53.170,3.528
+OBZNOUK_H_Demand,consumer,Demand,53.170,3.528
