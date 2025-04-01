@@ -164,4 +164,16 @@ CY_E_Demand,2050,demand,CY_E_Demand
 CY_Wind_Onshore,2050,availability,CY_Wind_Onshore
 CY_Solar,2050,availability,CY_Solar
 OBZLL_Wind_Offshore,2050,availability,OBZLL_Wind_Offshore
+OBZNL1_Wind_Offshore,2050,availability,OBZNL1_Wind_Offshore
+OBZNL2_Wind_Offshore,2050,availability,OBZNL2_Wind_Offshore
+OBZNL3_Wind_Offshore,2050,availability,OBZNL3_Wind_Offshore
+OBZNL4_Wind_Offshore,2050,availability,OBZNL4_Wind_Offshore
+OBZDEDK_Wind_Offshore,2050,availability,OBZDEDK_Wind_Offshore
+OBZNOUK_Wind_Offshore,2050,availability,OBZNOUK_Wind_Offshore
 OBZLL_E_Demand,2050,demand,OBZLL_E_Demand
+OBZNL1_E_Demand,2050,demand,OBZNL1_E_Demand
+OBZNL2_E_Demand,2050,demand,OBZNL2_E_Demand
+OBZNL3_E_Demand,2050,demand,OBZNL3_E_Demand
+OBZNL4_E_Demand,2050,demand,OBZNL4_E_Demand
+OBZDEDK_E_Demand,2050,demand,OBZDEDK_E_Demand
+OBZNOUK_E_Demand,2050,demand,OBZNOUK_E_Demand

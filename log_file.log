@@ -1,0 +1,59 @@
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                                           Time                    Allocations      
+                                                                                                                                  ───────────────────────   ────────────────────────
+                                                        Tot / % measured:                                                            5123996h /   0.0%           332GiB /  54.2%    
+
+Section                                                                                                                   ncalls     time    %tot     avg     alloc    %tot      avg
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+create_model!                                                                                                                  6    2668s   61.3%    445s    115GiB   63.8%  19.1GiB
+  create_model                                                                                                                 6    2668s   61.3%    445s    115GiB   63.8%  19.1GiB
+    add_capacity_constraints!                                                                                                  6     637s   14.6%    106s   33.4GiB   18.6%  5.57GiB
+    add_transport_constraints!                                                                                                 6     506s   11.6%   84.3s   17.3GiB    9.6%  2.89GiB
+    add_conversion_constraints!                                                                                                6     489s   11.2%   81.5s   1.42GiB    0.8%   243MiB
+    add_flow_variables!                                                                                                        6     405s    9.3%   67.4s   19.4GiB   10.8%  3.23GiB
+    add_storage_constraints!                                                                                                   6     240s    5.5%   39.9s   5.52GiB    3.1%   943MiB
+    add_expressions_to_constraints!                                                                                            6     232s    5.3%   38.7s   23.6GiB   13.1%  3.93GiB
+      add_expression_terms_rep_period_constraints!                                                                            48     106s    2.4%   2.21s   10.8GiB    6.0%   230MiB
+      add_expression_terms_rep_period_constraints! for capacity_outgoing                                                       6     104s    2.4%   17.4s   9.83GiB    5.5%  1.64GiB
+      add_expression_terms_rep_period_constraints! for capacity_incoming                                                       6    13.2s    0.3%   2.19s   2.20GiB    1.2%   375MiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_incoming                                           6    3.13s    0.1%   522ms    268MiB    0.1%  44.7MiB
+      add_expression_terms_over_clustered_year_constraints!                                                                   18    2.28s    0.1%   126ms   49.5MiB    0.0%  2.75MiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_outgoing                                           6    1.21s    0.0%   201ms    367MiB    0.2%  61.1MiB
+      add_expression_units_on_terms_rep_period_constraints!                                                                   18    331ms    0.0%  18.4ms   20.7MiB    0.0%  1.15MiB
+      add_expression_terms_rep_period_constraints! for capacity_outgoing_non_investable_storage_with_binary                    6    302ms    0.0%  50.3ms   4.56MiB    0.0%   778KiB
+      add_expression_terms_rep_period_constraints! for capacity_incoming_non_investable_storage_with_binary                    6    199ms    0.0%  33.2ms   4.56MiB    0.0%   778KiB
+      add_expression_terms_rep_period_constraints! for capacity_incoming_investable_storage_with_binary                        6    181ms    0.0%  30.2ms   4.56MiB    0.0%   778KiB
+      add_expression_terms_rep_period_constraints! for capacity_outgoing_investable_storage_with_binary                        6    166ms    0.0%  27.6ms   4.56MiB    0.0%   778KiB
+      add_expression_is_charging_terms_rep_period_constraints!                                                                 6    103ms    0.0%  17.1ms   52.2MiB    0.0%  8.69MiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_incoming_investable_storage_with_binary            6    864μs    0.0%   144μs   25.3KiB    0.0%  4.22KiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_incoming_non_investable_storage_with_binary        6    562μs    0.0%  93.7μs   25.3KiB    0.0%  4.22KiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_outgoing_non_investable_storage_with_binary        6    459μs    0.0%  76.5μs   25.3KiB    0.0%  4.22KiB
+      add_expression_is_charging_terms_rep_period_constraints! for capacity_outgoing_investable_storage_with_binary            6    327μs    0.0%  54.5μs   25.3KiB    0.0%  4.22KiB
+    add_hub_constraints!                                                                                                       6    80.0s    1.8%   13.3s   2.87GiB    1.6%   490MiB
+    add_consumer_constraints!                                                                                                  6    43.3s    1.0%   7.22s   6.57GiB    3.6%  1.09GiB
+    add_objective!                                                                                                             6    28.4s    0.7%   4.73s   4.10GiB    2.3%   700MiB
+    add_storage_variables!                                                                                                     6    2.94s    0.1%   491ms    481MiB    0.3%  80.2MiB
+    add_ramping_constraints!                                                                                                   6    1.52s    0.0%   253ms   21.4MiB    0.0%  3.57MiB
+    create_multi_year_expressions!                                                                                             6    759ms    0.0%   126ms   14.5MiB    0.0%  2.42MiB
+    add_investment_variables!                                                                                                  6    647ms    0.0%   108ms   47.1MiB    0.0%  7.85MiB
+    add_energy_constraints!                                                                                                    6    449ms    0.0%  74.9ms   1.64MiB    0.0%   280KiB
+    add_storage_expressions!                                                                                                   6    388ms    0.0%  64.6ms   12.2MiB    0.0%  2.03MiB
+    add_group_constraints!                                                                                                     6   33.7ms    0.0%  5.61ms   1.78KiB    0.0%     304B
+    add_unit_commitment_variables!                                                                                             6   2.03ms    0.0%   339μs      192B    0.0%    32.0B
+solve and store solution                                                                                                       6     897s   20.6%    150s   22.5GiB   12.5%  3.76GiB
+  total solver time                                                                                                            6     894s   20.5%    149s   22.5GiB   12.5%  3.75GiB
+create EnergyProblem from connection                                                                                           6     527s   12.1%   87.8s   15.5GiB    8.6%  2.59GiB
+  compute_variables_indices                                                                                                    6     216s    5.0%   35.9s   1.70GiB    0.9%   291MiB
+  create_internal_structure                                                                                                    6     196s    4.5%   32.7s   10.8GiB    6.0%  1.80GiB
+    create_lowest_resolution_table                                                                                             6    98.0s    2.2%   16.3s   10.8GiB    6.0%  1.79GiB
+      append t_lowest_all_flows rows                                                                                           6    55.0s    1.3%   9.17s   5.38GiB    3.0%   918MiB
+      append t_lowest_all rows                                                                                                 6    42.8s    1.0%   7.13s   5.38GiB    3.0%   917MiB
+    create_highest_resolution_table                                                                                            6    56.3s    1.3%   9.38s   44.1KiB    0.0%  7.34KiB
+    create_merged_tables                                                                                                       6    31.0s    0.7%   5.17s   16.4KiB    0.0%  2.73KiB
+    create_unrolled_partition_tables                                                                                           6    10.0s    0.2%   1.66s   24.8MiB    0.0%  4.14MiB
+  compute_constraints_indices                                                                                                  6    84.0s    1.9%   14.0s   1.14GiB    0.6%   194MiB
+  prepare_profiles_structure                                                                                                   6    30.5s    0.7%   5.08s   1.90GiB    1.1%   325MiB
+save_solution                                                                                                                  6     240s    5.5%   40.0s   27.1GiB   15.0%  4.51GiB
+  compute_dual_variables                                                                                                       6   7.38ms    0.0%  1.23ms      544B    0.0%    90.7B
+export_solution_to_csv_files                                                                                                   6    22.7s    0.5%   3.78s   90.8KiB    0.0%  15.1KiB
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
