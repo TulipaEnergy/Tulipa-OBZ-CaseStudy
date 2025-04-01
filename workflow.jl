@@ -112,11 +112,13 @@ CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0)
 # Plot the results
 prices_plot = plot_prices(
     prices;
-    assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
+    assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance", 
+    "OBZNL1_E_Balance", "OBZNL2_E_Balance","OBZNL3_E_Balance", 
+    "OBZNL4_E_Balance", "OBZDEDK_E_Balance","OBZNOUK_E_Balance"],
     #rep_periods = [1, 2],
 #    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), ylims = (0, 100)),
     plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
-    duration_curve = true,
+    duration_curve = true, #false, # true,
 )
 prices_plot_name = joinpath(@__DIR__, output_dir, "eu-case-price-duration-curve.png")
 savefig(prices_plot, prices_plot_name)
@@ -159,8 +161,8 @@ balance_plot = plot_bidding_zone_balance(
 balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$bidding_zone.png")
 savefig(balance_plot, balance_plot_name)
  
-from_asset = "OBZLL_E_Balance"
-to_asset = "NL_E_Balance"
+from_asset = "OBZNL2_E_Balance"
+to_asset = "NO_E_Balance"
 year = 2050
 rep_period = 1
 flow_plot = plot_flow(
