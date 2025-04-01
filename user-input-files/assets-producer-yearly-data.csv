@@ -194,4 +194,12 @@ CY_Wind_Onshore,2050,4,1
 CY_Solar,2050,4,1
 CY_Gas,2050,4,1
 OBZLL_Wind_Offshore,2050,1,1
+OBZNL1_Wind_Offshore,2050,1,1
+OBZNL2_Wind_Offshore,2050,1,1
+OBZNL3_Wind_Offshore,2050,1,1
+OBZNL4_Wind_Offshore,2050,1,1
+OBZNL5_Wind_Offshore,2050,1,1
+OBZNL6_Wind_Offshore,2050,1,1
+OBZDE1_Wind_Offshore,2050,1,1
+OBZDK1_Wind_Offshore,2050,1,1
 EU_SMR_CCS,2050,1,1
