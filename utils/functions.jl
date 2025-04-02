@@ -74,10 +74,8 @@ function process_user_files(
     end
 
     _cnames = map(Symbol, TulipaIO.tbl_cols(con, tbl_name).column_name)
-    for (key, value) in filter(p -> p.first in _cnames, default_values)
-        if value != "NULL"
-            TulipaIO.update_tbl(con, tbl_name, Dict(key => value); where_ = "$key IS NULL")
-        end
+    for (key, value) in filter(p -> (p.first in _cnames) && (p.second != "NULL"), default_values)
+        TulipaIO.update_tbl(con, tbl_name, Dict(key => value); where_ = "$key IS NULL")
     end
 
     if number_of_rep_periods > 1
@@ -93,16 +91,15 @@ function process_user_files(
     _cnames = map(Symbol, TulipaIO.tbl_cols(con, tbl_name).column_name)
     missing_columns_from_schema = setdiff(columns, _cnames)
 
-    if isempty(missing_columns_from_schema)
+    if !isempty(missing_columns_from_schema)
+        for name in missing_columns_from_schema
+            DBInterface.execute(
+                con,
+                "ALTER TABLE $(tbl_name) ADD COLUMN \"$name\" $(schema[string(name)]) DEFAULT $(default_values[name]) ;",
+            )
+        end
         DBInterface.execute(con, "COPY $tbl_name TO '$output_file' (FORMAT csv, HEADER)")
         return DBInterface.execute(con, "SELECT * FROM $tbl_name") |> DataFrame
-    end
-    sql_statements_to_add_missing_columns = [
-        "ALTER TABLE $(tbl_name) ADD COLUMN \"$name\" $(schema[string(name)]) DEFAULT $(default_values[name]) ;"
-        for name in missing_columns_from_schema
-    ]
-    for sql_statement in sql_statements_to_add_missing_columns
-        DBInterface.execute(con, sql_statement)
     end
 
     DBInterface.execute(con, "COPY $tbl_name TO '$output_file' (FORMAT csv, HEADER)")
