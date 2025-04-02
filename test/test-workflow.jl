@@ -124,9 +124,8 @@ CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0)
 prices_plot = plot_prices(
     prices;
     assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
-    #rep_periods = [1, 2],
-    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), ylims = (0, 100)),
-    plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+    rep_periods = [1, 2],
+    plots_args = (xticks = 0:2:24, ylim = (0, 100)),
     duration_curve = true,
 )
 prices_plot_name = joinpath(@__DIR__, "..", output_dir, "eu-case-price-duration-curve.png")
@@ -135,8 +134,8 @@ savefig(prices_plot, prices_plot_name)
 batteries_storage_levels_plot = plot_intra_storage_levels(
     intra_storage_levels;
     assets = ["NL_Battery", "UK_Battery"],
-    #rep_periods = [1, 2],
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760, ylims = (0, 1)),
+    rep_periods = [1, 2],
+    plots_args = (xticks = 0:2:24, ylims = (0, 1)),
 )
 batteries_storage_levels_plot_name =
     joinpath(@__DIR__, "..", output_dir, "eu-case-batteries-storage-levels.png")
@@ -146,13 +145,12 @@ if n_rp > 1
     hydro_storage_levels_plot = plot_inter_storage_levels(
         connection;
         assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
-        #plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
+        plots_args = (xticks = 0:7:365, ylims = (0, 1)),
     )
 else
     hydro_storage_levels_plot = plot_intra_storage_levels(
         intra_storage_levels;
         assets = ["ES_Hydro_Reservoir", "NO_Hydro_Reservoir", "FR_Hydro_Reservoir"],
-        #rep_periods = [1, 2],
         plots_args = (xticks = 0:730:8760, ylims = (0, 1)),
     )
 end
@@ -166,7 +164,7 @@ balance_plot = plot_asset_balance(
     asset = asset,
     year = 2050,
     rep_period = 1,
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:6:8760),
+    plots_args = (xlims = (0, 24), xticks = 0:2:24),
 )
 balance_plot_name = joinpath(@__DIR__, "..", output_dir, "eu-case-balance-$asset.png")
 savefig(balance_plot, balance_plot_name)
@@ -181,7 +179,7 @@ flow_plot = plot_flow(
     to_asset,
     year,
     rep_period;
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760),
+    plots_args = (xlims = (0, 24), xticks = 0:2:24),
 )
 flow_plot_name = joinpath(@__DIR__, "..", output_dir, "flows-$from_asset-$to_asset.png")
 savefig(flow_plot, flow_plot_name)
