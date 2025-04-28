@@ -112,11 +112,12 @@ CSV.write(balance_file_name, unstack(balances, :technology, :solution; fill = 0)
 # Plot the results
 prices_plot = plot_prices(
     prices;
-    assets = ["NL_E_Balance", "UK_E_Balance", "OBZLL_E_Balance"],
+    assets = ["NL_E_Balance", "UK_E_Balance", "DE_E_Balance", "DK_E_Balance", "NO_E_Balance", "OBZLL_E_Balance",
+    "OBZNL_E_Balance"],
     #rep_periods = [1, 2],
 #    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), ylims = (0, 100)),
     plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
-    duration_curve = true,
+    duration_curve = true, #false, # true,
 )
 prices_plot_name = joinpath(@__DIR__, output_dir, "eu-case-price-duration-curve.png")
 savefig(prices_plot, prices_plot_name)
@@ -159,7 +160,7 @@ balance_plot = plot_bidding_zone_balance(
 balance_plot_name = joinpath(@__DIR__, output_dir, "eu-case-balance-$bidding_zone.png")
 savefig(balance_plot, balance_plot_name)
  
-from_asset = "OBZLL_E_Balance"
+from_asset = "OBZNL_E_Balance"
 to_asset = "NL_E_Balance"
 year = 2050
 rep_period = 1
@@ -169,7 +170,24 @@ flow_plot = plot_flow(
     to_asset,
     year,
     rep_period;
-    plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760),
+    plots_args = (xlims = (2100, 2150), xticks = 0:10:8760),
+    #plots_args = (xlims = (8760 / 2, 8760 / 2 + 168), xticks = 0:12:8760),
 )
 flow_plot_name = joinpath(@__DIR__, output_dir, "flows-$from_asset-$to_asset.png")
 savefig(flow_plot, flow_plot_name)
+
+
+
+# Plot the results
+prices_plot_scatter = plot_prices_scatter(
+    prices;
+    assets = ["NL_E_Balance", "OBZNL_E_Balance", "DE_E_Balance"],
+    obz_gen=["OBZNL_Wind_Offshore"],
+    obz_number=197,
+    #rep_periods = [1, 2],
+    plots_args =  (clims=(0, 70)), #(xlims = (-30,50), ylims = (0,1), clims=(0, 40)),
+    #plots_args = (xticks = 0:730:8760, ylim = (0, 100)),
+    #duration_curve = true, #false, # true,
+)
+prices_plot_name = joinpath(@__DIR__, output_dir, "eu-case-price-scatter.png")
+savefig(prices_plot_scatter, prices_plot_name)
