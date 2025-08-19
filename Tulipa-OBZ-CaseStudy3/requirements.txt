@@ -1,0 +1,2 @@
+pandas==2.2.3
+pygwalker==0.4.9.13
