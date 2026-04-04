@@ -45,7 +45,7 @@ default_values = get_default_values(; default_year = 2050)
 
 @info "Defining TulipaClustering data"
 ## Data for clustering
-n_rp = 1               # number of representative periods
+n_rp = 10               # number of representative periods
 period_duration = 8760 # hours of the representative period
 method = :k_means
 distance = SqEuclidean()
